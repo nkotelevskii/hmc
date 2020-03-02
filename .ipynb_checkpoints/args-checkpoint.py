@@ -1,6 +1,9 @@
 import torch
 import numpy as np
 import torch.nn as nn
+from pyro.distributions.transforms import NeuralAutoregressive
+from pyro.nn import AutoRegressiveNN
+
 
 def get_args():
     class dotdict(dict):
@@ -28,8 +31,19 @@ def get_args():
     args.gamma = 1. ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
+    args.neutralizing_idea = False  # if we want to perform HMC in warped space
+    args.num_neutralizing_flows = 1 # how many neutralizing flows (NAFs) to use
     args.use_barker = True
     args.use_partialref = True
+    
+    if args.neutralizing_idea:
+        naf = []
+        for i in range(args.num_neutralizing_flows):
+            hidden_units = args.z_dim * 3
+            one_arn = AutoRegressiveNN(args.z_dim, [args.z_dim * 2], param_dims=[hidden_units] * 3).to(args.device)
+            one_naf = NeuralAutoregressive(one_arn, hidden_units=hidden_units)
+            naf.append(one_naf)
+        args.naf = nn.ModuleList(naf)
     
     args.std_normal = torch.distributions.Normal(loc=torch.tensor(0., dtype=args.torchType, device=args.device),
                                                 scale=torch.tensor(1., dtype=args.torchType, device=args.device))
@@ -61,8 +75,8 @@ def get_args():
     args['bnaf_data'] = 't4' # t1, t2, t3, t4
 
     # GMM with arbitraty many components
-    comp_1 = 10
-    comp_2 = 7
+    comp_1 = 100
+    comp_2 = 70
 
     args['num_gauss'] = 8
     args['p_gaussians'] = [torch.tensor(1. / args['num_gauss'], device=args.device, dtype=args.torchType)] * args['num_gauss']

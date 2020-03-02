@@ -16,6 +16,9 @@ class HMC_our(nn.Module):
         self.uniform = torch.distributions.Uniform(low=self.device_zero,
                                                    high=self.device_one)  # distribution for transition making
         self.std_normal = torch.distributions.Normal(loc=self.device_zero, scale=self.device_one)
+        self.naf = None
+        if kwargs.neutralizing_idea:
+            self.naf = kwargs.naf
 
     def _forward_step(self, q_old, x=None, k=None, target=None, p_old=None):
         """
@@ -33,16 +36,14 @@ class HMC_our(nn.Module):
         """
         gamma = torch.exp(self.gamma)  # to make eps positive
         p_flipped = -p_old
-        p_ = p_flipped + gamma / 2. * torch.autograd.grad(target.get_logdensity(x=x, z=q_old).sum(), q_old)[
-            0]  # NOTE that we are using log-density, not energy!
+        
+        p_ = p_flipped + gamma / 2. * self.get_grad(q=q_old, target=target, x=x)  # NOTE that we are using log-density, not energy!
         q_ = q_old
         for l in range(self.N):
             q_ = q_ + gamma * p_
             if (l != self.N - 1):
-                p_ = p_ + gamma * torch.autograd.grad(target.get_logdensity(x=x, z=q_).sum(), q_)[
-                    0]  # NOTE that we are using log-density, not energy!
-        p_ = p_ + gamma / 2. * torch.autograd.grad(target.get_logdensity(x=x, z=q_).sum(), q_)[
-            0]  # NOTE that we are using log-density, not energy!
+                p_ = p_ + gamma * self.get_grad(q=q_, target=target, x=x)  # NOTE that we are using log-density, not energy!
+        p_ = p_ + gamma / 2. * self.get_grad(q=q_, target=target, x=x)  # NOTE that we are using log-density, not energy!
         return q_, p_
 
     def _backward_step(self, q_old, x=None, k=None, target=None, p_old=None):
@@ -123,6 +124,22 @@ class HMC_our(nn.Module):
         p_new = torch.where((a == self.device_zero)[:, None], p_ref, p_upd)
         
         return q_new, p_new, log_jac, current_log_alphas, a
+    
+    def get_grad(self, q, target, x=None):
+        if self.naf:
+            sum_log_jac = torch.zeros(q.shape[0], device=self.device)
+            q_init = q
+            q_prev = q
+            for naf in self.naf:
+                q = naf(q_prev)
+                sum_log_jac = sum_log_jac + naf.log_abs_det_jacobian(q_prev, q)
+                q_prev = q
+            grad = torch.autograd.grad((target.get_logdensity(x=x, z=q) + sum_log_jac).sum(), q_init)[
+                0]
+        else:
+            grad = torch.autograd.grad(target.get_logdensity(x=x, z=q).sum(), q)[
+        0]
+        return grad
     
     
 class HMC_vanilla(nn.Module):
