@@ -19,17 +19,17 @@ def get_args():
     args.z_dim = 2 # Data dimensionality
     args.K = 5 # How many different kernels to train
     
-    args.num_batches = 5000
-    args.train_batch_size = 200
-    args.early_stopping_tolerance = 500
+    args.num_batches = 10000
+    args.train_batch_size = 500
+    args.early_stopping_tolerance = 1000
     args.step_conditioning = 'fixed' # free, fixed
     
-    args.N = 5 ## Number of Leapfrogs
+    args.N = 10 ## Number of Leapfrogs
     args.gamma = 1. ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
     args.use_barker = True
-    args.use_partialref = False
+    args.use_partialref = True
     
     args.std_normal = torch.distributions.Normal(loc=torch.tensor(0., dtype=args.torchType, device=args.device),
                                                 scale=torch.tensor(1., dtype=args.torchType, device=args.device))
