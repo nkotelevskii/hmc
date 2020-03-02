@@ -123,7 +123,7 @@ class HMC_our(nn.Module):
         q_new = torch.where((a == self.device_zero)[:, None], q_old, q_upd)
         p_new = torch.where((a == self.device_zero)[:, None], p_ref, p_upd)
         
-        return q_new, p_new, log_jac, current_log_alphas, a
+        return q_new, p_new, log_jac, current_log_alphas, a, q_upd
     
     def get_grad(self, q, target, x=None):
         if self.naf:

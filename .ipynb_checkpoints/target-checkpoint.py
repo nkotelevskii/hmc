@@ -186,9 +186,8 @@ class Funnel(Target):
     """
     Funnel distribution
     """
-
-    def __init__(self, kwargs, device):
-        super(Funnel, self).__init__(kwargs, device)
+    def __init__(self, kwargs):
+        super(Funnel, self).__init__(kwargs)
         self.d = kwargs['z_dim']
         self.std_normal = torch.distributions.Normal(loc=self.device_zero, scale=self.device_one)
 
@@ -236,126 +235,10 @@ class Funnel(Target):
             samples[i][1:] = component_normal.sample()
         return samples
 
-
-class NN_bernoulli(Target):
-    """
-    Density for NN with Bernoulli output
-    """
-
-    def __init__(self, kwargs, model, device):
-        super(NN_bernoulli, self).__init__(kwargs, device)
-        self.decoder = model
-        self.prior = torch.distributions.Normal(loc=self.device_zero, scale=self.device_one)
-
-    def get_density(self, x, z):
-        """
-        The method returns target density
-        Input:
-        x - datapoint
-        z - latent vaiable
-        Output:
-        density - p(x, z)
-        """
-        density = self.get_logdensity(x).exp()
-        return density
-
-    def get_logdensity(self, x, z):
-        """
-        The method returns target logdensity
-        Input:
-        x - datapoint
-        z - latent vaiable
-        Output:
-        log_density - log p(x, z)
-        """
-        p_x_given_z_logits = self.decoder(z)
-        p_x_given_z = torch.distributions.Bernoulli(logits=p_x_given_z_logits[0])
-        expected_log_likelihood = torch.sum(p_x_given_z.log_prob(x), [1, 2, 3])
-        log_density = expected_log_likelihood + self.prior.log_prob(z).sum(1)
-        return log_density
-
-
-class MF_target(Target):
-    """
-    Density for NN with Bernoulli output
-    """
-
-    def __init__(self, kwargs, model, device):
-        super(MF_target, self).__init__(kwargs, device)
-        self.decoder = model
-        self.prior = torch.distributions.Normal(loc=self.device_zero, scale=self.device_one)
-
-    def get_density(self, x, z):
-        """
-        The method returns target density
-        Input:
-        x - datapoint
-        z - latent vaiable
-        Output:
-        density - p(x, z)
-        """
-        density = self.get_logdensity(x).exp()
-        return density
-
-    def get_logdensity(self, x, z):
-        """
-        The method returns target logdensity
-        Input:
-        x - datapoint
-        z - latent vaiable
-        Output:
-        log_density - log p(x, z)
-        """
-        probs = self.decoder(z)
-        p_x_given_z = torch.distributions.Bernoulli(probs=probs)
-        expected_log_likelihood = torch.sum(p_x_given_z.log_prob(x.view(z.shape[0], -1)), 1)
-        log_density = expected_log_likelihood + self.prior.log_prob(z).sum(1)
-        return log_density
-
-
-class NN_Gaussian(Target):
-    """
-    Density for NN with Gaussian output
-    """
-
-    def __init__(self, kwargs, model, device):
-        super(NN_Gaussian, self).__init__(kwargs, device)
-        self.decoder = model
-        self.data_c = kwargs['data_c']
-        self.prior = torch.distributions.Normal(loc=self.device_zero, scale=self.device_one)
-
-    def get_density(self, x, z):
-        """
-        The method returns target density
-        Input:
-        x - datapoint
-        z - latent vaiable
-        Output:
-        density - p(x, z)
-        """
-        density = self.get_logdensity(x, z).exp()
-        return density
-
-    def get_logdensity(self, x, z):
-        """
-        The method returns target logdensity
-        Input:
-        x - datapoint
-        z - latent variable
-        Output:
-        log_density - log p(x, z)
-        """
-        mu, scale = self.decoder(z)
-        p_x_given_z = torch.distributions.Normal(loc=mu, scale=scale)
-        expected_log_likelihood = torch.sum(p_x_given_z.log_prob(x), [1, 2, 3])
-        log_density = expected_log_likelihood + self.prior.log_prob(z).sum(1)
-        return log_density
-
-
 class BNAF_examples(Target):
 
-    def __init__(self, kwargs, device):
-        super(BNAF_examples, self).__init__(kwargs, device)
+    def __init__(self, kwargs):
+        super(BNAF_examples, self).__init__(kwargs)
         self.data = kwargs.bnaf_data
 
     def get_logdensity(self, z, x=None):
@@ -399,56 +282,3 @@ class BNAF_examples(Target):
     def get_samples(self, n):
         return torch.stack(hamiltorch.sample(log_prob_func=self.get_logdensity, params_init=torch.zeros(2),
                                              num_samples=n, step_size=.3, num_steps_per_sample=5))
-
-
-class MNIST_target(Target):
-    def __init__(self, kwargs, device):
-        super(MNIST_target, self).__init__(kwargs, device)
-        self.true_x = kwargs["true_x"]
-        self.decoder = kwargs[
-            "decoder"]
-        self.prior = torch.distributions.Normal(loc=self.device_zero, scale=self.device_one)
-        self.decoder.eval()
-
-    def get_logdensity(self, z, x=None):
-        """
-        The method returns target logdensity
-        Input:
-        x - datapoint
-        z - latent vaiable
-        Output:
-        log_density - log p(x, z)
-        """
-        if x is not None:
-            if not torch.all(torch.eq(x, self.true_x)):
-                raise AttributeError
-            x = self.true_x
-        else:
-            pdb.set_trace()
-        p_x_given_z_logits = self.decoder(z)
-        p_x_given_z = torch.distributions.Bernoulli(logits=p_x_given_z_logits[0])
-        expected_log_likelihood = 0
-        for i in range(len(x)):
-            expected_log_likelihood += torch.sum(p_x_given_z.log_prob(x[i][None]), [1, 2, 3])
-        log_density = expected_log_likelihood + self.prior.log_prob(z).sum(1)
-        return log_density
-
-    def get_density(self, z, x=None):
-        return self.get_logdensity(z).exp()
-
-    def get_samples(self, n=1):
-        raise NotImplementedError
-
-    def show_x(self, x=None):
-        if not x:
-            x = self.true_x
-        np_image = x.cpu().numpy()
-        plt.imshow(np_image[0, 0, :, :])
-        plt.show()
-
-    def get_pictures(self, z, nrow=5):
-        x_logit = self.decoder(z)[0]
-        out = torchvision.utils.make_grid(x_logit, nrow)
-        out = out.cpu().numpy()[0]
-        plt.imshow(out)
-        plt.show()

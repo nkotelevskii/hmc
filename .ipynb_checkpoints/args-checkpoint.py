@@ -27,7 +27,7 @@ def get_args():
     args.early_stopping_tolerance = 1000
     args.step_conditioning = 'fixed' # free, fixed
     
-    args.N = 10 ## Number of Leapfrogs
+    args.N = 4 ## Number of Leapfrogs
     args.gamma = 1. ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
@@ -56,7 +56,7 @@ def get_args():
 
     # GMM (two gaussians)
     args['p_first_gaussian'] = 0.5 # Probability (weight) of the first gaussian
-    gaussian_centers = [-50., 50.]
+    gaussian_centers = [-10., 10.]
     args['locs_single_gmm'] = [torch.tensor([gaussian_centers[0], 0.], dtype=args.torchType, device=args.device),
                torch.tensor([gaussian_centers[1], 0.], dtype=args.torchType, device=args.device)] # locs
     args['covs_single_gmm'] = [torch.eye(2, dtype=args.torchType, device=args.device),
