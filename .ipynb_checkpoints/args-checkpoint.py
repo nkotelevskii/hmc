@@ -20,15 +20,15 @@ def get_args():
     args.torchType = torch.float32
     
     args.z_dim = 2 # Data dimensionality
-    args.K = 5 # How many different kernels to train
+    args.K = 2 # How many different kernels to train
     
     args.num_batches = 10000
-    args.train_batch_size = 500
+    args.train_batch_size = 200
     args.early_stopping_tolerance = 1000
-    args.step_conditioning = 'fixed' # free, fixed
+    args.step_conditioning = 'free' # free, fixed
     
-    args.N = 4 ## Number of Leapfrogs
-    args.gamma = 1. ## Stepsize
+    args.N = 3 ## Number of Leapfrogs
+    args.gamma = 0.5 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
     args.neutralizing_idea = False  # if we want to perform HMC in warped space
