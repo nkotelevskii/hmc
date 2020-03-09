@@ -33,7 +33,6 @@ def get_args():
     args.alpha = 0.5  ## For partial momentum refresh
     
     args.step_conditioning = 'free' # free, fixed, None
-#     args.noise_aggregation = 'stacking' # addition
     
     ###############################
     ######## Data Params ##########
@@ -41,12 +40,13 @@ def get_args():
     args.n_data = 0
     
     args.vds = 10000 ## Validation data set
+    
+    args.train_batch_size = 100
     args.test_batch_size = 10 ## Batch size test
     args.val_batch_size = 1000 ## batch size validation
     
     args.num_batches = 1000
     args.num_epoches = 400
-    args.train_batch_size = 100
     args.early_stopping_tolerance = 10000
     
     
