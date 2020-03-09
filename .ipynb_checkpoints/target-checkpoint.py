@@ -282,3 +282,47 @@ class BNAF_examples(Target):
     def get_samples(self, n):
         return torch.stack(hamiltorch.sample(log_prob_func=self.get_logdensity, params_init=torch.zeros(2),
                                              num_samples=n, step_size=.3, num_steps_per_sample=5))
+    
+class Gaussian_target(Target):
+    """
+    Simple multivariate normal
+    """
+
+    def __init__(self, kwargs):
+        super(Gaussian_target, self).__init__(kwargs)
+        self.distr = torch.distributions.MultivariateNormal(loc=kwargs['loc'], covariance_matrix=kwargs['cov_matrix'])
+
+    def get_density(self, z, x=None):
+        """
+        The method returns target density, estimated at point x
+        Input:
+        x - datapoint
+        z - latent vaiable
+        Output:
+        density - p(x)
+        """
+        density = self.distr.log_prob(z).exp()
+        return density
+
+    def get_logdensity(self, z, x=None):
+        """
+        The method returns target logdensity, estimated at point x
+        Input:
+        x - datapoint
+        z - latent vaiable
+        Output:
+        log_density - log p(x)
+        """
+        log_density = self.distr.log_prob(z)
+        return log_density
+
+    def get_samples(self, n):
+        """
+        The method returns samples from the distribution
+        Input:
+        n - amount of samples
+        Output:
+        samples - samples from the distribution
+        """
+        samples = self.distr.sample((n,))
+        return samples

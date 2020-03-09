@@ -7,8 +7,9 @@ class HMC_our(nn.Module):
     def __init__(self, kwargs):
         super(HMC_our, self).__init__()
         self.device = kwargs.device
-        self.gamma_logit = nn.Parameter(torch.tensor(np.log(kwargs.gamma) - np.log(1. - kwargs.gamma), device=self.device))
-        self.N = kwargs.N
+#         self.gamma_logit = nn.Parameter(torch.tensor(np.log(kwargs.gamma) - np.log(1. - kwargs.gamma), device=self.device))
+        self.gamma = nn.Parameter(torch.tensor(np.log(kwargs.gamma), device=self.device))
+        self.N = kwargs.N # num leapfrogs
         self.alpha_logit = nn.Parameter(torch.tensor(np.log(kwargs.alpha) - np.log(1. - kwargs.alpha), device=self.device))
         self.use_barker = kwargs.use_barker  # If false, we are using standard MH ration, otherwise Barker ratio
         self.device_zero = torch.tensor(0., dtype=kwargs.torchType, device=self.device)
@@ -34,7 +35,8 @@ class HMC_our(nn.Module):
         q_new - new position = T(q_old)
         log_jac - log_jacobian of the transformation
         """
-        gamma = torch.sigmoid(self.gamma_logit)  # to make eps positive
+#         gamma = torch.sigmoid(self.gamma_logit)  # to make eps positive
+        gamma = torch.exp(self.gamma)
         p_flipped = -p_old
         
         p_ = p_flipped + gamma / 2. * self.get_grad(q=q_old, target=target, x=x)  # NOTE that we are using log-density, not energy!
@@ -148,8 +150,8 @@ class HMC_vanilla(nn.Module):
         self.N = kwargs.N
         
         self.alpha_logit = torch.tensor(np.log(kwargs.alpha) - np.log(1. - kwargs.alpha), device=self.device)
-        self.gamma_logit = torch.tensor(np.log(kwargs.gamma) - np.log(1. - kwargs.gamma), device=self.device)
-        
+#         self.gamma_logit = torch.tensor(np.log(kwargs.gamma) - np.log(1. - kwargs.gamma), device=self.device)
+        self.gamma = torch.tensor(np.log(kwargs.gamma), device=self.device)
         self.use_partialref = kwargs.use_partialref  # If false, we are using full momentum refresh
         self.use_barker = kwargs.use_barker  # If false, we are using standard MH ration, otherwise Barker ratio
         self.device_zero = torch.tensor(0., dtype=kwargs.torchType, device=self.device)
@@ -172,7 +174,8 @@ class HMC_vanilla(nn.Module):
         q_new - new position = T(q_old)
         log_jac - log_jacobian of the transformation
         """
-        gamma = torch.sigmoid(self.gamma_logit)
+#         gamma = torch.sigmoid(self.gamma_logit)
+        gamma = torch.exp(self.gamma)
         p_flipped = -p_old
         q_old.requires_grad_(True)
         p_ = p_flipped + gamma / 2. * torch.autograd.grad(target.get_logdensity(x=x, z=q_old).sum(), q_old)[

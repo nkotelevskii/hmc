@@ -12,27 +12,46 @@ def get_args():
         __setattr__ = dict.__setitem__
         __delattr__ = dict.__delitem__
         
-    device = "cpu" #"cuda:0" if torch.cuda.is_available() else "cpu"
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
     args = {}
     args = dotdict(args)
 
     args.device = device
     args.torchType = torch.float32
     
-    args.z_dim = 2 # Data dimensionality
-    args.K = 2 # How many different kernels to train
+    args.data = 'mnist'
+    args.decoder = 'bilinear'
+    ###############################
+    ####### Model Params ##########
+    ###############################
     
-    args.num_batches = 10000
-    args.train_batch_size = 200
-    args.early_stopping_tolerance = 1000
-    args.step_conditioning = 'free' # free, fixed
+    args.z_dim = 64 # Data dimensionality
+    args.K = 1 # How many different kernels to train
     
-    args.N = 3 ## Number of Leapfrogs
-    args.gamma = 0.5 ## Stepsize
+    args.N = 5 ## Number of Leapfrogs
+    args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
+    args.step_conditioning = 'free' # free, fixed, None
+#     args.noise_aggregation = 'stacking' # addition
+    
+    ###############################
+    ######## Data Params ##########
+    ###############################
+    args.n_data = 0
+    
+    args.vds = 10000 ## Validation data set
+    args.test_batch_size = 10 ## Batch size test
+    args.val_batch_size = 1000 ## batch size validation
+    
+    args.num_batches = 1000
+    args.num_epoches = 400
+    args.train_batch_size = 100
+    args.early_stopping_tolerance = 10000
+    
+    
     args.neutralizing_idea = False  # if we want to perform HMC in warped space
-    args.num_neutralizing_flows = 1 # how many neutralizing flows (NAFs) to use
+    args.num_neutralizing_flows = 5 # how many neutralizing flows (NAFs) to use
     args.use_barker = True
     args.use_partialref = True
     
@@ -50,13 +69,13 @@ def get_args():
 
     ########################################### Data Params ###########################################
     # Multivariate normal
-    args['loc'] = torch.tensor([10., 10.], dtype=args.torchType, device=args.device) # loc for Gaussian target
-    args['cov_matrix'] = torch.tensor([[1., 0.7], [0.7, 1.]], dtype=args.torchType, device=args.device) # cov_matrix for Gaussian target
+    args['loc'] = torch.tensor([0., 0.], dtype=args.torchType, device=args.device) # loc for Gaussian target
+    args['cov_matrix'] = torch.tensor([[50.05, -49.95], [-49.95, 50.05]], dtype=args.torchType, device=args.device) # cov_matrix for Gaussian target
     args['true_mean'] = torch.zeros(args['z_dim'], device=args.device, dtype=args.torchType)
 
     # GMM (two gaussians)
     args['p_first_gaussian'] = 0.5 # Probability (weight) of the first gaussian
-    gaussian_centers = [-10., 10.]
+    gaussian_centers = [-5., 5.]
     args['locs_single_gmm'] = [torch.tensor([gaussian_centers[0], 0.], dtype=args.torchType, device=args.device),
                torch.tensor([gaussian_centers[1], 0.], dtype=args.torchType, device=args.device)] # locs
     args['covs_single_gmm'] = [torch.eye(2, dtype=args.torchType, device=args.device),
