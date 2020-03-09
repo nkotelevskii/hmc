@@ -10,7 +10,7 @@ class HMC_our(nn.Module):
 #         self.gamma_logit = nn.Parameter(torch.tensor(np.log(kwargs.gamma) - np.log(1. - kwargs.gamma), device=self.device))
         self.gamma = nn.Parameter(torch.tensor(np.log(kwargs.gamma), device=self.device))
         self.N = kwargs.N # num leapfrogs
-        self.alpha_logit = nn.Parameter(torch.tensor(np.log(kwargs.alpha) - np.log(1. - kwargs.alpha), device=self.device))
+        self.alpha_logit = nn.Parameter(torch.tensor(np.log(kwargs.alpha) - np.log(1. - kwargs.alpha), device=self.device), requires_grad=True)
         self.use_barker = kwargs.use_barker  # If false, we are using standard MH ration, otherwise Barker ratio
         self.device_zero = torch.tensor(0., dtype=kwargs.torchType, device=self.device)
         self.device_one = torch.tensor(1., dtype=kwargs.torchType, device=self.device)

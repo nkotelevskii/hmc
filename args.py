@@ -28,8 +28,8 @@ def get_args():
     args.z_dim = 64 # Data dimensionality
     args.K = 1 # How many different kernels to train
     
-    args.N = 1 ## Number of Leapfrogs
-    args.gamma = 0.15 ## Stepsize
+    args.N = 3 ## Number of Leapfrogs
+    args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
     args.amortize = True
@@ -41,7 +41,7 @@ def get_args():
     
     args.vds = 10000 ## Validation data set
     
-    args.train_batch_size = 250
+    args.train_batch_size = 500
     args.test_batch_size = 10 ## Batch size test
     args.val_batch_size = 1000 ## batch size validation
     
