@@ -128,6 +128,8 @@ class HMC_our(nn.Module):
         return q_new, p_new, log_jac, current_log_alphas, a, q_upd
     
     def get_grad(self, q, target, x=None):
+        if not q.requires_grad:
+            q.requires_grad_(True)
         if self.naf:
             sum_log_jac = torch.zeros(q.shape[0], device=self.device)
             q_init = q

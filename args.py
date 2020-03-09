@@ -12,7 +12,7 @@ def get_args():
         __setattr__ = dict.__setitem__
         __delattr__ = dict.__delitem__
         
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device = "cpu"#"cuda:0" if torch.cuda.is_available() else "cpu"
     args = {}
     args = dotdict(args)
 
@@ -25,10 +25,10 @@ def get_args():
     ####### Model Params ##########
     ###############################
     
-    args.z_dim = 64 # Data dimensionality
-    args.K = 1 # How many different kernels to train
+    args.z_dim = 2 # Data dimensionality
+    args.K = 5 # How many different kernels to train
     
-    args.N = 3 ## Number of Leapfrogs
+    args.N = 1 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
