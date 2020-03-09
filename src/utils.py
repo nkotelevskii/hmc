@@ -134,9 +134,10 @@ def plot_digit_samples(samples, args, epoch=None):
     if not os.path.exists('./pics/'):
         os.makedirs('./pics/')
     plt.tight_layout()
-    img_path = './pics/mnist_epoch_{}_K_{}_N_{}.png'.format(epoch, args.K, args.N)
+    img_path = './pics/mnist_epoch_{}_K_{}_N_{}_amortize_{}.png'.format(epoch, args.K, args.N, args.amortize)
     plt.savefig(img_path)
     print('Saved samples to {}'.format(img_path))
+    plt.show()
 
 
 def get_samples(gen_network, random_code):

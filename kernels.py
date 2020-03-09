@@ -36,6 +36,7 @@ class HMC_our(nn.Module):
         log_jac - log_jacobian of the transformation
         """
 #         gamma = torch.sigmoid(self.gamma_logit)  # to make eps positive
+#         pdb.set_trace()
         gamma = torch.exp(self.gamma)
         p_flipped = -p_old
         
