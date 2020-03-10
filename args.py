@@ -28,11 +28,11 @@ def get_args():
     args.z_dim = 64 # Data dimensionality
     args.K = 2 # How many different kernels to train
     
-    args.N = 2 ## Number of Leapfrogs
+    args.N = 1 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.75  ## For partial momentum refresh
     
-    args.amortize = True
+    args.amortize = False
     
     ###############################
     ######## Data Params ##########
