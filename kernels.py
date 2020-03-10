@@ -274,4 +274,4 @@ class HMC_vanilla(nn.Module):
         q_new = torch.where((a == self.device_zero)[:, None], q_old, q_upd)
         p_new = torch.where((a == self.device_zero)[:, None], p_ref, p_upd)
         
-        return q_new, p_new, None, None, a
+        return q_new, p_new, None, None, a, q_upd

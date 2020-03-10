@@ -12,7 +12,7 @@ def get_args():
         __setattr__ = dict.__setitem__
         __delattr__ = dict.__delitem__
         
-    device = "cpu"#"cuda:0" if torch.cuda.is_available() else "cpu"
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
     args = {}
     args = dotdict(args)
 
@@ -25,12 +25,12 @@ def get_args():
     ####### Model Params ##########
     ###############################
     
-    args.z_dim = 2 # Data dimensionality
-    args.K = 5 # How many different kernels to train
+    args.z_dim = 64 # Data dimensionality
+    args.K = 2 # How many different kernels to train
     
-    args.N = 1 ## Number of Leapfrogs
+    args.N = 2 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
-    args.alpha = 0.5  ## For partial momentum refresh
+    args.alpha = 0.75  ## For partial momentum refresh
     
     args.amortize = True
     
@@ -41,7 +41,7 @@ def get_args():
     
     args.vds = 10000 ## Validation data set
     
-    args.train_batch_size = 500
+    args.train_batch_size = 100
     args.test_batch_size = 10 ## Batch size test
     args.val_batch_size = 1000 ## batch size validation
     
