@@ -281,10 +281,10 @@ class Reverse_kernel(nn.Module):
         super(Reverse_kernel, self).__init__()
         self.z_dim = kwargs.z_dim
         self.K = kwargs.K
-        self.linear_z = nn.Linear(in_features=self.z_dim, out_features=2*self.K)
-        self.linear_mu = nn.Linear(in_features=self.z_dim, out_features=2 * self.K)
-        self.linear_hidden = nn.Linear(in_features=4*self.K, out_features=2*self.K)
-        self.linear_out = nn.Linear(in_features=2*self.K, out_features=self.K)
+        self.linear_z = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
+        self.linear_mu = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
+        self.linear_hidden = nn.Linear(in_features=10*self.K, out_features=5*self.K)
+        self.linear_out = nn.Linear(in_features=5*self.K, out_features=self.K)
 
     def forward(self, z_fin, mu):
         z_ = torch.relu(self.linear_z(z_fin))

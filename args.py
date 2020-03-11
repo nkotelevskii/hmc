@@ -26,7 +26,7 @@ def get_args():
     ###############################
     
     args.z_dim = 64 # Data dimensionality
-    args.K = 5 # How many different kernels to train
+    args.K = 2 # How many different kernels to train
     args.learnable_reverse = True
     args.N = 2 ## Number of Leapfrogs
     args.gamma = 0.02 ## Stepsize
