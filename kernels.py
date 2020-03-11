@@ -275,3 +275,23 @@ class HMC_vanilla(nn.Module):
         p_new = torch.where((a == self.device_zero)[:, None], p_ref, p_upd)
         
         return q_new, p_new, None, None, a, q_upd
+
+class Reverse_kernel(nn.Module):
+    def __init__(self, kwargs):
+        super(Reverse_kernel, self).__init__()
+        self.z_dim = kwargs.z_dim
+        self.K = kwargs.K
+        self.linear_z = nn.Linear(in_features=self.z_dim, out_features=2*self.K)
+        self.linear_mu = nn.Linear(in_features=self.z_dim, out_features=2 * self.K)
+        self.linear_hidden = nn.Linear(in_features=4*self.K, out_features=2*self.K)
+        self.linear_out = nn.Linear(in_features=2*self.K, out_features=self.K)
+
+    def forward(self, z_fin, mu):
+        z_ = torch.relu(self.linear_z(z_fin))
+        mu_ = torch.relu(self.linear_mu(mu))
+        cat_z_mu = torch.cat([z_, mu_], dim=1)
+        h1 = torch.relu(self.linear_hidden(cat_z_mu))
+        probs = torch.sigmoid(h1)
+        log_prob = torch.sum(torch.log(probs), dim=1)
+        return log_prob
+

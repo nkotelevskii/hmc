@@ -75,7 +75,7 @@ class Dataset():
         for batch in self.train_dataloader:
             if self.img_c == 1:
                 batch = torch.distributions.Binomial(probs=batch).sample()
-            batch = batch.view([self.train_batch_size, self.img_c, self.img_h, self.img_w])
+            batch = batch.view([-1, self.img_c, self.img_h, self.img_w])
             yield batch
 
     def next_val_batch(self):
@@ -84,7 +84,7 @@ class Dataset():
         sampling (could change)
         """
         for batch in self.val_dataloader:
-            batch = batch.view([self.val_batch_size, self.img_c, self.img_h, self.img_w])
+            batch = batch.view([-1, self.img_c, self.img_h, self.img_w])
             yield batch
 
     def next_test_batch(self):
@@ -94,6 +94,6 @@ class Dataset():
         for batch in self.test_dataloader:
             if self.img_c == 1:
                 batch = torch.distributions.Binomial(probs=batch).sample()
-                batch = batch.view([self.test_batch_size, self.img_c, self.img_h, self.img_w])
+                batch = batch.view([-1, self.img_c, self.img_h, self.img_w])
             batch = batch.repeat(self.n_IS, 1, 1, 1)
             yield batch

@@ -26,13 +26,13 @@ def get_args():
     ###############################
     
     args.z_dim = 64 # Data dimensionality
-    args.K = 2 # How many different kernels to train
+    args.K = 5 # How many different kernels to train
+    args.learnable_reverse = True
+    args.N = 2 ## Number of Leapfrogs
+    args.gamma = 0.02 ## Stepsize
+    args.alpha = 0.5  ## For partial momentum refresh
     
-    args.N = 1 ## Number of Leapfrogs
-    args.gamma = 0.1 ## Stepsize
-    args.alpha = 0.75  ## For partial momentum refresh
-    
-    args.amortize = False
+    args.amortize = True
     
     ###############################
     ######## Data Params ##########
@@ -41,12 +41,12 @@ def get_args():
     
     args.vds = 10000 ## Validation data set
     
-    args.train_batch_size = 100
+    args.train_batch_size = 500
     args.test_batch_size = 10 ## Batch size test
     args.val_batch_size = 1000 ## batch size validation
     
     args.num_batches = 1000
-    args.num_epoches = 400
+    args.num_epoches = 500
     args.early_stopping_tolerance = 10000
     
     
