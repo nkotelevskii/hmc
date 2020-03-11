@@ -279,22 +279,25 @@ class HMC_vanilla(nn.Module):
 class Reverse_kernel(nn.Module):
     def __init__(self, kwargs):
         super(Reverse_kernel, self).__init__()
+        self.device = kwargs.device
+        self.device_one = torch.tensor(1., dtype=kwargs.torchType, device=self.device)
         self.z_dim = kwargs.z_dim
         self.K = kwargs.K
-        self.linear_a = nn.Linear(in_features=self.K, out_features=2*self.K)
+        #self.linear_a = nn.Linear(in_features=self.K, out_features=2*self.K)
         self.linear_z = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
         self.linear_mu = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
-        self.linear_hidden = nn.Linear(in_features=12*self.K, out_features=5*self.K)
+        self.linear_hidden = nn.Linear(in_features=10*self.K, out_features=5*self.K)
         self.linear_out = nn.Linear(in_features=5*self.K, out_features=self.K)
 
     def forward(self, z_fin, mu, a):
         z_ = torch.relu(self.linear_z(z_fin))
         mu_ = torch.relu(self.linear_mu(mu))
-        a_ = torch.relu(self.linear_a(a))
-        cat_z_mu_a = torch.cat([z_, mu_, a_], dim=1)
-        h1 = torch.relu(self.linear_hidden(cat_z_mu_a))
-        h_out = torch.relu(self.linear_out(h1))
-        probs = torch.sigmoid(h_out)
+        #a_ = torch.relu(self.linear_a(a))
+        #cat_z_mu_a = torch.cat([z_, mu_, a_], dim=1)
+        cat_z_mu = torch.cat([z_, mu_], dim=1)
+        h1 = torch.relu(self.linear_hidden(cat_z_mu))
+        probs = torch.sigmoid(self.linear_out(h1))
+        probs = torch.where(a == self.device_one, probs, self.device_one-probs)
         log_prob = torch.sum(torch.log(probs), dim=1)
         return log_prob
 
