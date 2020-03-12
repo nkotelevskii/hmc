@@ -24,12 +24,14 @@ def get_args():
     ###############################
     ####### Model Params ##########
     ###############################
-    
+    args.learning_rate = 1e-5
     args.z_dim = 64 # Data dimensionality
-    args.K = 2 # How many different kernels to train
-    args.learnable_reverse = False
-    args.N = 2 ## Number of Leapfrogs
-    args.gamma = 0.02 ## Stepsize
+    args.K = 10 # How many different kernels to train
+    args.learnable_reverse = True
+    args.clip_norm = False
+    args.clip_value = 5.
+    args.N = 1 ## Number of Leapfrogs
+    args.gamma = 0.01 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
     args.amortize = True
