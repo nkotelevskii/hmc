@@ -24,7 +24,7 @@ def get_args():
     ###############################
     ####### Model Params ##########
     ###############################
-    args.n_alpha = 5 # None if itsnot needed
+    args.n_alpha = None # None if itsnot needed
     args.learning_rate = 1e-4
     args.z_dim = 64 # Data dimensionality
     args.K = 1 # How many different kernels to train
