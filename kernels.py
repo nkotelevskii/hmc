@@ -297,7 +297,7 @@ class Reverse_kernel(nn.Module):
         cat_z_mu = torch.cat([z_, mu_], dim=1)
         h1 = torch.relu(self.linear_hidden(cat_z_mu))
         probs = torch.sigmoid(self.linear_out(h1))
-        probs = torch.where(a==self.device_one, probs, self.device_one-probs)
+        probs = torch.where(a == self.device_one, probs, self.device_one-probs)
         log_prob = torch.sum(torch.log(probs), dim=1)
         return log_prob
 
