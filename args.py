@@ -27,8 +27,8 @@ def get_args():
     args.n_samples = 1 # how many samples for estimation to take
     args.n_alpha = None # None if itsnot needed
     args.learning_rate = 1e-4
-    args.z_dim = 2 # Data dimensionality
-    args.K = 10 # How many different kernels to train
+    args.z_dim = 64 # Data dimensionality
+    args.K = 1 # How many different kernels to train
     args.learnable_reverse = True
     args.clip_norm = False
     args.clip_value = 5.
@@ -42,7 +42,7 @@ def get_args():
     ######## Data Params ##########
     ###############################
     args.n_data = 0
-    
+    args.train_data_size = 20000
     args.vds = 10000 ## Validation data set
     
     args.train_batch_size = 500

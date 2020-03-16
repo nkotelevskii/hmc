@@ -27,6 +27,9 @@ class Dataset():
                 device)
             data_test = datasets.FashionMNIST(root='./data/FashionMNIST', download=True, train=False).test_data.type(
                 torchType).to(device)
+        elif args.data == 'toy_data':
+            data_train = args.data_distrib.get_samples(n=args.train_data_size)
+            data_test = args.data_distrib.get_samples(n=args.train_data_size)
         else:
             raise ModuleNotFoundError
 
