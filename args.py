@@ -12,7 +12,7 @@ def get_args():
         __setattr__ = dict.__setitem__
         __delattr__ = dict.__delitem__
         
-    device = "cuda:1" if torch.cuda.is_available() else "cpu"
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
     args = {}
     args = dotdict(args)
 
@@ -24,12 +24,13 @@ def get_args():
     ###############################
     ####### Model Params ##########
     ###############################
-    args.n_samples = 10 # how many samples for estimation to take
+    args.n_samples = 1 # how many samples for estimation to take
+    
     args.n_alpha = None # None if itsnot needed
-    args.learning_rate = 1e-4
-    args.z_dim = 64 # Data dimensionality
-    args.K = 5 # How many different kernels to train
-    args.learnable_reverse = True
+    args.learning_rate = 1e-3
+    args.z_dim = 2 # Data dimensionality
+    args.K = 1 # How many different kernels to train
+    args.learnable_reverse = False
     args.clip_norm = False
     args.clip_value = 5.
     args.N = 1 ## Number of Leapfrogs
@@ -43,14 +44,14 @@ def get_args():
     ###############################
     args.n_data = 0
     
-    args.vds = 10000 ## Validation data set
-    
-    args.train_batch_size = 100
+    args.vds = 5 ## Validation data set
+    args.train_data_size = 20
+    args.train_batch_size = 15
     args.test_batch_size = 10 ## Batch size test
-    args.val_batch_size = 1000 ## batch size validation
+    args.val_batch_size = 5 ## batch size validation
     
     args.num_batches = 1000
-    args.num_epoches = 750
+    args.num_epoches = 50000
     args.early_stopping_tolerance = 10000
     
     

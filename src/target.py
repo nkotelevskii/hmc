@@ -322,7 +322,8 @@ class NN_Gaussian(Target):
     def __init__(self, kwargs, model, device):
         super(NN_Gaussian, self).__init__(kwargs, device)
         self.decoder = model
-        self.data_c = kwargs['data_c']
+#         self.data_c = kwargs['data_c']
+        self.data = kwargs.data
         self.prior = torch.distributions.Normal(loc=self.device_zero, scale=self.device_one)
 
     def get_density(self, x, z):
@@ -348,7 +349,11 @@ class NN_Gaussian(Target):
         """
         mu, scale = self.decoder(z)
         p_x_given_z = torch.distributions.Normal(loc=mu, scale=scale)
-        expected_log_likelihood = torch.sum(p_x_given_z.log_prob(x), [1, 2, 3])
+#         pdb.set_trace()
+        if self.data == 'toy_data':
+            expected_log_likelihood = torch.sum(p_x_given_z.log_prob(x), 1)
+        else:
+            expected_log_likelihood = torch.sum(p_x_given_z.log_prob(x), [1, 2, 3])
         log_density = expected_log_likelihood + self.prior.log_prob(z).sum(1)
         return log_density
 
