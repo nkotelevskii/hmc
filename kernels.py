@@ -301,3 +301,23 @@ class Reverse_kernel(nn.Module):
         log_prob = torch.sum(torch.log(probs), dim=1)
         return log_prob
 
+class Reverse_kernel_sampling(nn.Module):
+    def __init__(self, kwargs):
+        super(Reverse_kernel_sampling, self).__init__()
+        self.device = kwargs.device
+        self.device_one = torch.tensor(1., dtype=kwargs.torchType, device=self.device)
+        self.z_dim = kwargs.z_dim
+        self.K = kwargs.K
+
+        self.linear_z = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
+        self.linear_hidden = nn.Linear(in_features=5*self.K, out_features=5*self.K)
+        self.linear_out = nn.Linear(in_features=5*self.K, out_features=self.K)
+
+    def forward(self, z_fin, a):
+        z_ = torch.relu(self.linear_z(z_fin))
+        h1 = torch.relu(self.linear_hidden(z_))
+        probs = torch.sigmoid(self.linear_out(h1))
+        probs = torch.where(a == self.device_one, probs, self.device_one - probs)
+        log_prob = torch.sum(torch.log(probs), dim=1)
+        return log_prob
+

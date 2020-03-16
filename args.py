@@ -27,14 +27,14 @@ def get_args():
     args.n_samples = 1 # how many samples for estimation to take
     args.n_alpha = None # None if itsnot needed
     args.learning_rate = 1e-4
-    args.z_dim = 64 # Data dimensionality
-    args.K = 1 # How many different kernels to train
+    args.z_dim = 2 # Data dimensionality
+    args.K = 10 # How many different kernels to train
     args.learnable_reverse = True
     args.clip_norm = False
     args.clip_value = 5.
     args.N = 1 ## Number of Leapfrogs
-    args.gamma = 0.02 ## Stepsize
-    args.alpha = 0.75  ## For partial momentum refresh
+    args.gamma = 0.1 ## Stepsize
+    args.alpha = 0.5  ## For partial momentum refresh
     
     args.amortize = True
     
@@ -49,9 +49,9 @@ def get_args():
     args.test_batch_size = 10 ## Batch size test
     args.val_batch_size = 1000 ## batch size validation
     
-    args.num_batches = 1000
+    args.num_batches = 10000
     args.num_epoches = 750
-    args.early_stopping_tolerance = 10000
+    args.early_stopping_tolerance = 2000
     
     
     args.neutralizing_idea = False  # if we want to perform HMC in warped space
