@@ -75,9 +75,9 @@ class Inf_network_simple(nn.Module):
         self.z_dim = args.z_dim
         self.input_dim = args.data_dim
         
-        self.linear = nn.Linear(in_features=self.input_dim, out_features=5*args.z_dim)
-        self.mu = nn.Linear(in_features=5*args.z_dim, out_features=self.z_dim)
-        self.sigma = nn.Linear(in_features=5*args.z_dim, out_features=self.z_dim)
+        self.linear = nn.Linear(in_features=self.input_dim, out_features=20*args.z_dim)
+        self.mu = nn.Linear(in_features=20*args.z_dim, out_features=self.z_dim)
+        self.sigma = nn.Linear(in_features=20*args.z_dim, out_features=self.z_dim)
 
     def forward(self, x):
         h4 = F.softplus(self.linear(x))
