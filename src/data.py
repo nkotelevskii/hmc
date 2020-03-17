@@ -1,6 +1,7 @@
 import torch
 import torchvision.datasets as datasets
 from torch.utils.data import Dataset as Dataset_pt
+import pdb
 
 torchType = torch.float32
 NUM_WORKERS = 0
@@ -33,9 +34,12 @@ class Dataset():
         else:
             raise ModuleNotFoundError
 
+        self.data = args.data
+        
         self.img_h = 28
         self.img_w = 28
         self.img_c = 1
+        
 
         if args.n_data <= 0:
             data_train = data_train[torch.randperm(data_train.size()[0])]
@@ -43,11 +47,13 @@ class Dataset():
         else:
             data_train = data_train[torch.randperm(data_train.size()[0])][:args.n_data]
             n_data = data_train.shape[0]
+#         pdb.set_trace()
         if max(args.vds, args.train_batch_size, args.test_batch_size, args.val_batch_size) > n_data:
             raise ValueError(
                 'Batch size for training, batch size for validation, batch size for test and number of data for validation should all be smaller than total data')
-        data_train /= data_train.max()
-        data_test /= data_test.max()
+        if args.data != 'toy_data':
+            data_train /= data_train.max()
+            data_test /= data_test.max()
         self.validation = data_train[:args.vds].data
         self.train = data_train[args.vds:].data
         self.test = data_test.data
@@ -75,28 +81,41 @@ class Dataset():
         Training batches will reshuffle every epoch and involve dynamic
         binarization
         """
-        for batch in self.train_dataloader:
-            if self.img_c == 1:
-                batch = torch.distributions.Binomial(probs=batch).sample()
-            batch = batch.view([-1, self.img_c, self.img_h, self.img_w])
-            yield batch
+        if self.data == 'toy_data':
+            for batch in self.train_dataloader:
+                yield batch  
+        else:
+            for batch in self.train_dataloader:
+                if self.img_c == 1:
+                    batch = torch.distributions.Binomial(probs=batch).sample()
+                batch = batch.view([-1, self.img_c, self.img_h, self.img_w])
+                yield batch
 
     def next_val_batch(self):
         """
         Validation batches will be used for ELBO estimates without importance
         sampling (could change)
         """
-        for batch in self.val_dataloader:
-            batch = batch.view([-1, self.img_c, self.img_h, self.img_w])
-            yield batch
+        if self.data == 'toy_data':
+            for batch in self.val_dataloader:
+                yield batch 
+        else:
+            for batch in self.val_dataloader:
+                batch = batch.view([-1, self.img_c, self.img_h, self.img_w])
+                yield batch
 
     def next_test_batch(self):
         """
         Test batches are same as validation but with added binarization
         """
-        for batch in self.test_dataloader:
-            if self.img_c == 1:
-                batch = torch.distributions.Binomial(probs=batch).sample()
-                batch = batch.view([-1, self.img_c, self.img_h, self.img_w])
-            batch = batch.repeat(self.n_IS, 1, 1, 1)
-            yield batch
+        if self.data == 'toy_data':
+            for batch in self.test_dataloader:
+                batch = batch.repeat(self.n_IS, 1)
+                yield batch 
+        else:
+            for batch in self.test_dataloader:
+                if self.img_c == 1:
+                    batch = torch.distributions.Binomial(probs=batch).sample()
+                    batch = batch.view([-1, self.img_c, self.img_h, self.img_w])
+                batch = batch.repeat(self.n_IS, 1, 1, 1)
+                yield batch

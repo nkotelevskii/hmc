@@ -26,10 +26,10 @@ def get_args():
     ###############################
     args.n_samples = 1 # how many samples for estimation to take
     args.n_alpha = None # None if itsnot needed
-    args.learning_rate = 1e-4
-    args.z_dim = 64 # Data dimensionality
+    args.learning_rate = 1e-2
+    args.z_dim = 2 # Data dimensionality
     args.K = 1 # How many different kernels to train
-    args.learnable_reverse = True
+    args.learnable_reverse = False
     args.clip_norm = False
     args.clip_value = 5.
     args.N = 1 ## Number of Leapfrogs
@@ -42,16 +42,16 @@ def get_args():
     ######## Data Params ##########
     ###############################
     args.n_data = 0
-    args.train_data_size = 20000
-    args.vds = 10000 ## Validation data set
     
-    args.train_batch_size = 500
+    args.vds = 1000 ## Validation data set
+    args.train_data_size = 15000
+    args.train_batch_size = 1000
     args.test_batch_size = 10 ## Batch size test
-    args.val_batch_size = 1000 ## batch size validation
+    args.val_batch_size = 100 ## batch size validation
     
-    args.num_batches = 10000
-    args.num_epoches = 750
-    args.early_stopping_tolerance = 2000
+    args.num_batches = 100
+    args.num_epoches = 1000
+    args.early_stopping_tolerance = 10000
     
     
     args.neutralizing_idea = False  # if we want to perform HMC in warped space
