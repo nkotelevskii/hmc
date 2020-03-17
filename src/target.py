@@ -458,3 +458,64 @@ class MNIST_target(Target):
         out = out.cpu().numpy()[0]
         plt.imshow(out)
         plt.show()
+
+        
+
+class Banana(Target):
+    """
+    Banana-shaped distribution
+    """
+
+    def __init__(self, kwargs, device):
+        super(Banana, self).__init__(kwargs, device)
+        self.d = 2
+        self.initial_gaussian = torch.distributions.MultivariateNormal(loc=torch.zeros(self.d, device=self.device),
+                                                                       covariance_matrix=kwargs['banana_cov_matrix'])
+        self.a = torch.tensor(kwargs['banana_a'], device=self.device, dtype=torchType)
+        self.b = torch.tensor(kwargs['banana_b'], device=self.device, dtype=torchType)
+        self.rho = kwargs['banana_cov_matrix'][0, 1]
+
+    def get_density(self, z, x=None):
+        """
+        The method returns target density, estimated at point x
+        Input:
+        x - datapoint
+        z - latent vaiable
+        Output:
+        density - p(x)
+        """
+        density = self.distr.log_prob(z).exp()
+        return density
+
+    def get_logdensity(self, z, x=None):
+        """
+        The method returns target logdensity, estimated at point x
+        Input:
+        x - datapoint
+        z - latent vaiable
+        Output:
+        log_density - log p(x)
+        """
+        x = z[:, 0]
+        y = z[:, 1]
+        log_density = -1. / (2 * (1. - self.rho ** 2)) * ((x / self.a) ** 2
+                                                          + self.a ** 2 * (
+                                                                  y - self.b * x ** 2 / self.a ** 2 - self.b * self.a ** 2) ** 2
+                                                          - 2 * self.rho * (
+                                                                  y - self.b * x ** 2 / self.a ** 2 - self.b * self.a ** 2))
+        return log_density
+
+    def get_samples(self, n):
+        """
+        The method returns samples from the distribution
+        Input:
+        n - amount of samples
+        Output:
+        samples - samples from the distribution
+        """
+        # sample from true target
+        gaussian_samples = self.initial_gaussian.sample((n,))
+        x = self.a * gaussian_samples[:, 0]
+        y = gaussian_samples[:, 1] / self.a + self.b * (gaussian_samples[:, 0] ** 2 + self.a ** 2)
+        samples = torch.cat([x[:, None], y[:, None]], dim=-1)
+        return samples

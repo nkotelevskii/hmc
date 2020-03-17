@@ -12,7 +12,7 @@ def get_args():
         __setattr__ = dict.__setitem__
         __delattr__ = dict.__delitem__
         
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device = "cuda:1" if torch.cuda.is_available() else "cpu"
     args = {}
     args = dotdict(args)
 
@@ -26,17 +26,19 @@ def get_args():
     ###############################
     args.n_samples = 1 # how many samples for estimation to take
     args.n_alpha = None # None if itsnot needed
-    args.learning_rate = 1e-2
+    
+    args.learning_rate = 1e-3
     args.z_dim = 2 # Data dimensionality
-    args.K = 1 # How many different kernels to train
-    args.learnable_reverse = False
-    args.clip_norm = False
-    args.clip_value = 5.
-    args.N = 1 ## Number of Leapfrogs
+    args.K = 20 # How many different kernels to train
+    args.N = 3 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
     args.amortize = True
+    args.learnable_reverse = True
+    args.clip_norm = False
+    args.clip_value = 5.    
+    
     
     ###############################
     ######## Data Params ##########
@@ -45,13 +47,13 @@ def get_args():
     
     args.vds = 1000 ## Validation data set
     args.train_data_size = 15000
-    args.train_batch_size = 1000
+    args.train_batch_size = 500
     args.test_batch_size = 10 ## Batch size test
     args.val_batch_size = 100 ## batch size validation
     
-    args.num_batches = 100
+    args.num_batches = 5000
     args.num_epoches = 1000
-    args.early_stopping_tolerance = 10000
+    args.early_stopping_tolerance = 1000
     
     
     args.neutralizing_idea = False  # if we want to perform HMC in warped space
@@ -98,8 +100,8 @@ def get_args():
     args['bnaf_data'] = 't4' # t1, t2, t3, t4
 
     # GMM with arbitraty many components
-    comp_1 = 100
-    comp_2 = 70
+    comp_1 = 10
+    comp_2 = 7
 
     args['num_gauss'] = 8
     args['p_gaussians'] = [torch.tensor(1. / args['num_gauss'], device=args.device, dtype=args.torchType)] * args['num_gauss']

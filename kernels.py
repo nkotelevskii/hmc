@@ -228,6 +228,7 @@ class HMC_vanilla(nn.Module):
         # p_old_refreshed = (p_ - torch.sqrt(1. - alpha**2) * k[0]) / alpha
         # log_jac = -p_old.shape[1] * torch.log(alpha)
         # return [z_, p_, p_old_refreshed, log_jac]
+        
 
     def make_transition(self, q_old, p_old, target_distr, k=None, x=None):
         """
