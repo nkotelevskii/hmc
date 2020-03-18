@@ -365,11 +365,8 @@ class Banana(Target):
         """
         x = z[:, 0]
         y = z[:, 1]
-        log_density = -1. / (2 * (1. - self.rho ** 2)) * ((x / self.a) ** 2
-                                                          + self.a ** 2 * (
-                                                                  y - self.b * x ** 2 / self.a ** 2 - self.b * self.a ** 2) ** 2
-                                                          - 2 * self.rho * (
-                                                                  y - self.b * x ** 2 / self.a ** 2 - self.b * self.a ** 2))
+        log_density = -((x / self.a) ** 2 + self.a ** 2 * (y - self.b * (x / self.a) ** 2 - self.b * self.a ** 2) ** 2 \
+                        - 2 * self.rho * (y - self.b * (x / self.a) ** 2 - self.b * self.a ** 2)) / (2 * (1. - self.rho ** 2))
         return log_density
 
     def get_samples(self, n):
