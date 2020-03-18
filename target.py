@@ -363,10 +363,14 @@ class Banana(Target):
         Output:
         log_density - log p(x)
         """
-        x = z[:, 0]
-        y = z[:, 1]
-        log_density = -((x / self.a) ** 2 + self.a ** 2 * (y - self.b * (x / self.a) ** 2 - self.b * self.a ** 2) ** 2 \
-                        - 2 * self.rho * (y - self.b * (x / self.a) ** 2 - self.b * self.a ** 2)) / (2 * (1. - self.rho ** 2))
+#         x = z[:, 0]
+#         y = z[:, 1]
+#         log_density = -((x / self.a) ** 2 + self.a ** 2 * (y - self.b * (x / self.a) ** 2 - self.b * self.a ** 2) ** 2 \
+#                         - 2 * self.rho * (y - self.b * (x / self.a) ** 2 - self.b * self.a ** 2)) / (2 * (1. - self.rho ** 2))
+        x = z[:, 0] / self.a
+        y = z[:, 1] * self.a - self.a * self.b * (x**2 + self.a**2)
+        points = torch.cat([x.view(-1, 1), y.view(-1, 1)], dim=-1)
+        log_density = self.initial_gaussian.log_prob(points)
         return log_density
 
     def get_samples(self, n):
