@@ -93,6 +93,7 @@ class HMC_our(nn.Module):
         a - decision variables (-1, 0 or +1)
         p_new (optional) - new momentum (for HMC, if p_old is not None)
         """
+#         pdb.set_trace()
         ### Partial momentum refresh
         alpha = torch.sigmoid(self.alpha_logit)
         p_ref = p_old * alpha + torch.sqrt(1. - alpha ** 2) * k

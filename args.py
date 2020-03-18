@@ -29,8 +29,8 @@ def get_args():
     
     args.learning_rate = 1e-3
     args.z_dim = 2 # Data dimensionality
-    args.K = 25 # How many different kernels to train
-    args.N = 1 ## Number of Leapfrogs
+    args.K = 3 # How many different kernels to train
+    args.N = 3 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
