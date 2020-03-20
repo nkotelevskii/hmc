@@ -36,7 +36,7 @@ def get_args():
     
     args.fix_transition_params = True
     args.amortize = True
-    args.learnable_reverse = True
+    args.learnable_reverse = False
     args.clip_norm = False
     args.clip_value = 5.    
     
