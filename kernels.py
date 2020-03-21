@@ -93,7 +93,6 @@ class HMC_our(nn.Module):
         a - decision variables (-1, 0 or +1)
         p_new (optional) - new momentum (for HMC, if p_old is not None)
         """
-#         pdb.set_trace()
         ### Partial momentum refresh
         alpha = torch.sigmoid(self.alpha_logit)
         p_ref = p_old * alpha + torch.sqrt(1. - alpha ** 2) * k
@@ -164,7 +163,7 @@ class HMC_vanilla(nn.Module):
                                                    high=self.device_one)  # distribution for transition making
         self.std_normal = torch.distributions.Normal(loc=self.device_zero, scale=self.device_one)
 
-    def _forward_step(self, q_old, x=None, k=None, target=None, p_old=None):
+    def _forward_step(self, q_old, x=None, k=None, target=None, p_old=None, flows=None):
         """
         The function makes forward step
         Also, this function computes log_jacobian of the transformation
@@ -182,24 +181,17 @@ class HMC_vanilla(nn.Module):
         gamma = torch.exp(self.gamma)
         p_flipped = -p_old
         q_old.requires_grad_(True)
-        p_ = p_flipped + gamma / 2. * torch.autograd.grad(target.get_logdensity(x=x, z=q_old).sum(), q_old)[
-            0].detach()  # NOTE that we are using log-density, not energy!
-        q_old.requires_grad_(False)
-        p_.requires_grad_(False)
+        p_ = p_flipped + gamma / 2. * self.get_grad(q=q_old, target=target, x=x, flows=flows)  # NOTE that we are using log-density, not energy!
         q_ = q_old
         for l in range(self.N):
             q_ = q_ + gamma * p_
             if (l != self.N - 1):
-                q_.requires_grad_(True)
-                p_ = p_ + gamma * torch.autograd.grad(target.get_logdensity(x=x, z=q_).sum(), q_)[
-                    0]  # NOTE that we are using log-density, not energy!
-                p_.requires_grad_(False)
-                q_.requires_grad_(False)
-        q_.requires_grad_(True)
-        p_ = p_ + gamma / 2. * torch.autograd.grad(target.get_logdensity(x=x, z=q_).sum(), q_)[
-            0]  # NOTE that we are using log-density, not energy!
-        p_.requires_grad_(False)
-        q_.requires_grad_(False)
+                p_ = p_ + gamma * self.get_grad(q=q_, target=target, x=x, flows=flows)  # NOTE that we are using log-density, not energy!
+        p_ = p_ + gamma / 2. * self.get_grad(q=q_, target=target, x=x, flows=flows)  # NOTE that we are using log-density, not energy!
+
+        p_ = p_.detach()
+        q_ = q_.detach()
+        q_old.requires_grad_(False)
 
         return q_, p_
 
@@ -229,9 +221,8 @@ class HMC_vanilla(nn.Module):
         # p_old_refreshed = (p_ - torch.sqrt(1. - alpha**2) * k[0]) / alpha
         # log_jac = -p_old.shape[1] * torch.log(alpha)
         # return [z_, p_, p_old_refreshed, log_jac]
-        
 
-    def make_transition(self, q_old, p_old, target_distr, k=None, x=None):
+    def make_transition(self, q_old, p_old, target_distr, k=None, x=None, flows=None):
         """
         The function returns directions (-1, 0 or +1), sampled in the current positions
         Input:
@@ -248,7 +239,7 @@ class HMC_vanilla(nn.Module):
         a - decision variables (-1, 0 or +1)
         p_new (optional) - new momentum (for HMC, if p_old is not None)
         """
-#         pdb.set_trace()
+        # pdb.set_trace()
         ### Partial momentum refresh
         alpha = torch.sigmoid(self.alpha_logit)
         if self.use_partialref:
@@ -257,7 +248,7 @@ class HMC_vanilla(nn.Module):
             p_ref = self.std_normal.sample(p_old.shape)
         
         ############ Then we compute new points and densities ############
-        q_upd, p_upd = self._forward_step(q_old=q_old, p_old=p_ref, k=k, target=target_distr, x=x)
+        q_upd, p_upd = self._forward_step(q_old=q_old, p_old=p_ref, k=k, target=target_distr, x=x, flows=flows)
 
         target_log_density_f = target_distr.get_logdensity(z=q_upd, x=x) + self.std_normal.log_prob(p_upd).sum(1)
         target_log_density_old = target_distr.get_logdensity(z=q_old, x=x) + self.std_normal.log_prob(p_ref).sum(1)
@@ -277,6 +268,26 @@ class HMC_vanilla(nn.Module):
         p_new = torch.where((a == self.device_zero)[:, None], p_ref, p_upd)
         
         return q_new, p_new, None, None, a, q_upd
+
+    def get_grad(self, q, target, x=None, flows=None):
+        if flows:
+            log_jacobian = 0.
+            q_init = q
+            q_prev = q
+            q_new = q
+            for i in range(len(flows)):
+                q_new = flows[i](q_prev)
+                log_jacobian += flows[i].log_abs_det_jacobian(q_prev, q_new)
+                q_prev = q_new
+            q = q_new
+            s = target.get_logdensity(x=x, z=q) + log_jacobian
+            grad = torch.autograd.grad(s.sum(), q_init)[0]
+        else:
+            s = target.get_logdensity(x=x, z=q)
+            grad = torch.autograd.grad(s.sum(), q)[0]
+        return grad
+
+
 
 class Reverse_kernel(nn.Module):
     def __init__(self, kwargs):
