@@ -288,6 +288,22 @@ class HMC_vanilla(nn.Module):
         return grad
 
 
+class Reverse_kernel_simple(nn.Module):
+    def __init__(self, kwargs):
+        super(Reverse_kernel, self).__init__()
+        self.device = kwargs.device
+        self.device_one = torch.tensor(1., dtype=kwargs.torchType, device=self.device)
+        self.z_dim = kwargs.z_dim
+        self.K = kwargs.K
+        #self.linear_a = nn.Linear(in_features=self.K, out_features=2*self.K)
+        self.prob = nn.Parameter(torch.ones(self.K, device=args.device, dtype=args.torchType)*kwargs.prob)
+
+    def forward(self, a):
+        probs = torch.sigmoid(self.prob)
+        probs = torch.where(a == self.device_one, probs, self.device_one-probs)
+        log_prob = torch.sum(torch.log(probs), dim=1)
+        return log_prob    
+    
 
 class Reverse_kernel(nn.Module):
     def __init__(self, kwargs):
