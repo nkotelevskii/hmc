@@ -20,7 +20,7 @@ def get_args():
     args.torchType = torch.float32
     
     args.data = 'mnist'
-    args.decoder = 'bilinear'
+    args.decoder = 'deconv'
     ###############################
     ####### Model Params ##########
     ###############################
@@ -28,12 +28,15 @@ def get_args():
     args.n_alpha = None # None if itsnot needed
     
     args.learning_rate = 1e-3
+    args.vanilla_vae_epoches = 5
     args.z_dim = 64 # Data dimensionality
-    args.K = 1 # How many different kernels to train
-    args.N = 1 ## Number of Leapfrogs
+    args.K = 5 # How many different kernels to train
+    args.N = 5 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
+    
+    args.use_batchnorm = True
     args.fix_transition_params = True
     args.amortize = True
     args.learnable_reverse = True

@@ -128,12 +128,10 @@ class HMC_our(nn.Module):
         return q_new, p_new, log_jac, current_log_alphas, a, q_upd
     
     def get_grad(self, q, target, x=None):
-        if not q.requires_grad:
-            q.requires_grad_(True)
+        q_init = q.detach().requires_grad_(True)
         if self.naf:
-            sum_log_jac = torch.zeros(q.shape[0], device=self.device)
-            q_init = q
-            q_prev = q
+            sum_log_jac = torch.zeros(q_init.shape[0], device=self.device)
+            q_prev = q_init
             for naf in self.naf:
                 q = naf(q_prev)
                 sum_log_jac = sum_log_jac + naf.log_abs_det_jacobian(q_prev, q)
@@ -141,7 +139,7 @@ class HMC_our(nn.Module):
             grad = torch.autograd.grad((target.get_logdensity(x=x, z=q) + sum_log_jac).sum(), q_init)[
                 0]
         else:
-            grad = torch.autograd.grad(target.get_logdensity(x=x, z=q).sum(), q)[
+            grad = torch.autograd.grad(target.get_logdensity(x=x, z=q_init).sum(), q_init)[
         0]
         return grad
     
@@ -270,40 +268,23 @@ class HMC_vanilla(nn.Module):
         return q_new, p_new, None, None, a, q_upd
 
     def get_grad(self, q, target, x=None, flows=None):
+        q_init = q.detach().requires_grad_(True)
         if flows:
             log_jacobian = 0.
-            q_init = q
-            q_prev = q
-            q_new = q
+            q_prev = q_init
+            q_new = q_init
             for i in range(len(flows)):
                 q_new = flows[i](q_prev)
                 log_jacobian += flows[i].log_abs_det_jacobian(q_prev, q_new)
                 q_prev = q_new
-            q = q_new
-            s = target.get_logdensity(x=x, z=q) + log_jacobian
+            s = target.get_logdensity(x=x, z=q_new) + log_jacobian
             grad = torch.autograd.grad(s.sum(), q_init)[0]
         else:
-            s = target.get_logdensity(x=x, z=q)
-            grad = torch.autograd.grad(s.sum(), q)[0]
+            s = target.get_logdensity(x=x, z=q_init)
+            grad = torch.autograd.grad(s.sum(), q_init)[0]
         return grad
 
 
-class Reverse_kernel_simple(nn.Module):
-    def __init__(self, kwargs):
-        super(Reverse_kernel, self).__init__()
-        self.device = kwargs.device
-        self.device_one = torch.tensor(1., dtype=kwargs.torchType, device=self.device)
-        self.z_dim = kwargs.z_dim
-        self.K = kwargs.K
-        #self.linear_a = nn.Linear(in_features=self.K, out_features=2*self.K)
-        self.prob = nn.Parameter(torch.ones(self.K, device=args.device, dtype=args.torchType)*kwargs.prob)
-
-    def forward(self, a):
-        probs = torch.sigmoid(self.prob)
-        probs = torch.where(a == self.device_one, probs, self.device_one-probs)
-        log_prob = torch.sum(torch.log(probs), dim=1)
-        return log_prob    
-    
 
 class Reverse_kernel(nn.Module):
     def __init__(self, kwargs):
