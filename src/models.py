@@ -67,29 +67,20 @@ class Gen_network(nn.Module):
             self.deconv3 = nn.ConvTranspose2d(in_channels=16, out_channels=self.size_c, kernel_size=5,
                                               stride=2, padding=2, output_padding=1)
         elif args.decoder == "bilinear":
-            if args.batchnorm:
-                self.deconv1 = nn.Sequential(nn.UpsamplingBilinear2d(size=(7, 7)),
-                                             nn.Conv2d(in_channels=32, out_channels=32, kernel_size=1))
-                self.deconv2 = nn.Sequential(nn.UpsamplingBilinear2d(size=(14, 14)),
-                                             nn.Conv2d(in_channels=32, out_channels=16, kernel_size=1))
-                self.deconv3 = nn.Sequential(nn.UpsamplingBilinear2d(size=(self.size_h, self.size_w)),
-                                             nn.Conv2d(in_channels=16, out_channels=self.size_c, kernel_size=1))
+            self.deconv1 = nn.Sequential(nn.UpsamplingBilinear2d(size=(7, 7)),
+                                         nn.Conv2d(in_channels=32, out_channels=32, kernel_size=1))
+            self.deconv2 = nn.Sequential(nn.UpsamplingBilinear2d(size=(14, 14)),
+                                         nn.Conv2d(in_channels=32, out_channels=16, kernel_size=1))
+            self.deconv3 = nn.Sequential(nn.UpsamplingBilinear2d(size=(self.size_h, self.size_w)),
+                                         nn.Conv2d(in_channels=16, out_channels=self.size_c, kernel_size=1))
 
     def forward(self, x):
-        if self.bn:
-            h1 = F.softplus(self.bn(self.linear1(x)))
-            h2_flatten = F.softplus(self.linear2(h1))
-            h2 = h2_flatten.view(-1, 32, 4, 4)
-            h3 = F.softplus(self.bn1(self.deconv1(h2)))
-            h4 = F.softplus(self.bn2(self.deconv2(h3)))
-            bernoulli_logits = self.deconv3(h4)
-        else:
-            h1 = F.softplus(self.linear1(x))
-            h2_flatten = F.softplus(self.linear2(h1))
-            h2 = h2_flatten.view(-1, 32, 4, 4)
-            h3 = F.softplus(self.deconv1(h2))
-            h4 = F.softplus(self.deconv2(h3))
-            bernoulli_logits = self.deconv3(h4)
+        h1 = F.softplus(self.bn(self.linear1(x)))
+        h2_flatten = F.softplus(self.linear2(h1))
+        h2 = h2_flatten.view(-1, 32, 4, 4)
+        h3 = F.softplus(self.bn1(self.deconv1(h2)))
+        h4 = F.softplus(self.bn2(self.deconv2(h3)))
+        bernoulli_logits = self.deconv3(h4)
         return [bernoulli_logits, None]
 
 

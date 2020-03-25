@@ -34,8 +34,8 @@ def get_args():
     
     args.vanilla_vae_epoches = 5
     args.z_dim = 64 # Data dimensionality
-    args.K = 5 # How many different kernels to train
-    args.N = 1 ## Number of Leapfrogs
+    args.K = 30 # How many different kernels to train
+    args.N = 30 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
