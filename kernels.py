@@ -39,7 +39,7 @@ class HMC_our(nn.Module):
 #         pdb.set_trace()
         gamma = torch.exp(self.gamma)
         p_flipped = -p_old
-        
+
         p_ = p_flipped + gamma / 2. * self.get_grad(q=q_old, target=target, x=x)  # NOTE that we are using log-density, not energy!
         q_ = q_old
         for l in range(self.N):
@@ -113,7 +113,7 @@ class HMC_our(nn.Module):
 
         log_probs = torch.log(self.uniform.sample((q_upd.shape[0],)))
         a = torch.where(log_probs < current_log_alphas_pre, self.device_one, self.device_zero)
-        
+
         if self.use_barker:
             current_log_alphas = torch.where((a == 0.), -log_1_t, current_log_alphas_pre)
         else:
@@ -124,9 +124,9 @@ class HMC_our(nn.Module):
 
         q_new = torch.where((a == self.device_zero)[:, None], q_old, q_upd)
         p_new = torch.where((a == self.device_zero)[:, None], p_ref, p_upd)
-        
+
         return q_new, p_new, log_jac, current_log_alphas, a, q_upd
-    
+
     def get_grad(self, q, target, x=None):
         q_init = q.detach().requires_grad_(True)
         if self.naf:

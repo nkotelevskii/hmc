@@ -55,9 +55,9 @@ class Gen_network(nn.Module):
             self.bn1 = nn.BatchNorm2d(32)
             self.bn2 = nn.BatchNorm2d(16)
         else:
-            self.bn = Identity
-            self.bn1 = Identity
-            self.bn2 = Identity
+            self.bn = Identity()
+            self.bn1 = Identity()
+            self.bn2 = Identity()
 
         if args.decoder == "deconv":
             self.deconv1 = nn.ConvTranspose2d(in_channels=32, out_channels=32, kernel_size=5,
