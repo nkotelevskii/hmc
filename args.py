@@ -34,8 +34,8 @@ def get_args():
     
     args.vanilla_vae_epoches = 5
     args.z_dim = 64 # Data dimensionality
-    args.K = 3 # How many different kernels to train
-    args.N = 3 ## Number of Leapfrogs
+    args.K = 2 # How many different kernels to train
+    args.N = 1 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
@@ -62,10 +62,11 @@ def get_args():
     args.train_batch_size = 500
     args.test_batch_size = 10 ## Batch size test
     args.val_batch_size = 100 ## batch size validation
+    args.n_IS = 1000
     
     args.num_batches = 20000
     args.num_epoches = 1000
-    args.early_stopping_tolerance = 1000
+    args.early_stopping_tolerance = 50
     
     
     args.neutralizing_idea = False  # if we want to perform HMC in warped space

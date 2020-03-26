@@ -4,3 +4,4 @@ src/__pycache__/
 src/.ipynb_checkpoints/
 data/mnist/
 pics/
+models/mnist/*.pt
