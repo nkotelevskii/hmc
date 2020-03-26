@@ -12,7 +12,7 @@ def get_args():
         __setattr__ = dict.__setitem__
         __delattr__ = dict.__delitem__
         
-    device = "cuda:1" if torch.cuda.is_available() else "cpu"
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
     args = {}
     args = dotdict(args)
 
@@ -28,26 +28,26 @@ def get_args():
     args.n_alpha = None # None if itsnot needed
     
     
-    args.learning_rate = 1e-3 # either common lr (if saparate params = False), or lr only for generative network
+    args.learning_rate = 1e-4 # either common lr (if saparate params = False), or lr only for generative network
     args.learning_rate_vanilla = 1e-3
     args.learning_rate_inference = 1e-3
     
     args.vanilla_vae_epoches = 5
     args.z_dim = 64 # Data dimensionality
-    args.K = 30 # How many different kernels to train
-    args.N = 30 ## Number of Leapfrogs
+    args.K = 3 # How many different kernels to train
+    args.N = 3 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
     
-    args.separate_params = True
-    args.use_batchnorm = True
-    args.train_only_inference_period = 10
-    args.train_only_inference_cutoff = 7
+    args.separate_params = True # Whether to separate params for training our alg or not
+    args.use_batchnorm = True # whether to use batch norm layer in decoder or not
+    args.train_only_inference_period = 10  # period
+    args.train_only_inference_cutoff = 7  # how many times we train ONLY inference part
     
-    args.fix_transition_params = False
-    args.amortize = False
-    args.learnable_reverse = True
+    args.fix_transition_params = False  # whether to freeze transition params
+    args.amortize = False # whether to amortize transitions
+    args.learnable_reverse = True  # whether to learn reverse
     args.clip_norm = False
     args.clip_value = 5.    
     
