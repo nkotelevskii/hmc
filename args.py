@@ -39,8 +39,9 @@ def get_args():
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
-    
     args.separate_params = True # Whether to separate params for training our alg or not
+    args.hoffman_idea = True and args.separate_params ## Whether to use Hoffman's idea of separating objectives or not (note that usable only if separate params == True)
+
     args.use_batchnorm = True # whether to use batch norm layer in decoder or not
     args.train_only_inference_period = 10  # period
     args.train_only_inference_cutoff = 7  # how many times we train ONLY inference part
@@ -66,7 +67,7 @@ def get_args():
     
     args.num_batches = 20000
     args.num_epoches = 1000
-    args.early_stopping_tolerance = 50
+    args.early_stopping_tolerance = 5000
     
     
     args.neutralizing_idea = False  # if we want to perform HMC in warped space
@@ -94,7 +95,7 @@ def get_args():
 
     # GMM (two gaussians)
     args['p_first_gaussian'] = 0.5 # Probability (weight) of the first gaussian
-    gaussian_centers = [-5., 5.]
+    gaussian_centers = [-50., 50.]
     args['locs_single_gmm'] = [torch.tensor([gaussian_centers[0], 0.], dtype=args.torchType, device=args.device),
                torch.tensor([gaussian_centers[1], 0.], dtype=args.torchType, device=args.device)] # locs
     args['covs_single_gmm'] = [torch.eye(2, dtype=args.torchType, device=args.device),
