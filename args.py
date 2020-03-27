@@ -32,9 +32,9 @@ def get_args():
     args.learning_rate_vanilla = 1e-3
     args.learning_rate_inference = 1e-3
     
-    args.vanilla_vae_epoches = 5
+    args.vanilla_vae_epoches = 0
     args.z_dim = 64 # Data dimensionality
-    args.K = 2 # How many different kernels to train
+    args.K = 1 # How many different kernels to train
     args.N = 1 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
@@ -59,7 +59,7 @@ def get_args():
     
     args.vds = 1000 ## Validation data set
     args.train_data_size = 15000
-    args.train_batch_size = 500
+    args.train_batch_size = 100
     args.test_batch_size = 10 ## Batch size test
     args.val_batch_size = 100 ## batch size validation
     args.n_IS = 1000
