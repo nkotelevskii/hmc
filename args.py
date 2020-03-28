@@ -12,7 +12,7 @@ def get_args():
         __setattr__ = dict.__setitem__
         __delattr__ = dict.__delitem__
         
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device = "cuda:1" if torch.cuda.is_available() else "cpu"
     args = {}
     args = dotdict(args)
 
@@ -28,14 +28,14 @@ def get_args():
     args.n_alpha = None # None if itsnot needed
     
     
-    args.learning_rate = 1e-4 # either common lr (if saparate params = False), or lr only for generative network
+    args.learning_rate = 1e-3 # either common lr (if saparate params = False), or lr only for generative network
     args.learning_rate_vanilla = 1e-3
     args.learning_rate_inference = 1e-3
     
     args.vanilla_vae_epoches = 0
     args.z_dim = 64 # Data dimensionality
-    args.K = 1 # How many different kernels to train
-    args.N = 1 ## Number of Leapfrogs
+    args.K = 5 # How many different kernels to train
+    args.N = 2 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
