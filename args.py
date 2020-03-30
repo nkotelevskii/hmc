@@ -34,8 +34,8 @@ def get_args():
     
     args.vanilla_vae_epoches = 0
     args.z_dim = 64 # Data dimensionality
-    args.K = 2 # How many different kernels to train
-    args.N = 2 ## Number of Leapfrogs
+    args.K = 10 # How many different kernels to train
+    args.N = 1 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
     
@@ -95,7 +95,7 @@ def get_args():
 
     # GMM (two gaussians)
     args['p_first_gaussian'] = 0.5 # Probability (weight) of the first gaussian
-    gaussian_centers = [-50., 50.]
+    gaussian_centers = [-5., 5.]
     args['locs_single_gmm'] = [torch.tensor([gaussian_centers[0], 0.], dtype=args.torchType, device=args.device),
                torch.tensor([gaussian_centers[1], 0.], dtype=args.torchType, device=args.device)] # locs
     args['covs_single_gmm'] = [torch.eye(2, dtype=args.torchType, device=args.device),
