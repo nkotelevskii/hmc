@@ -1,4 +1,4 @@
-K,Mean,N,amortize,data,fixtransition,hoffmanlike,learnreverse,std,vanillaepoches,separateparams,usebatchnorm,decoder
-2,-98.73,1,False,mnist,False,False,True,0.03,0,True,True,deconv
-1,-90.0915298461914,1,False,mnist,False,True,True,0.03822317346930504,0,True,True,deconv
-2,-91.25090789794922,1,False,mnist,False,True,True,0.01186813786625862,0,True,True,deconv
+K,Mean,N,amortize,data,fixtransition,hoffmanlike,learnreverse,std,vanillaepoches,separateparams,usebatchnorm,decoder,eval_method
+2,-98.73,1,False,mnist,False,False,True,0.03,0,True,True,deconv,IS_with_same_inference_part
+1,-90.0915298461914,1,False,mnist,False,True,True,0.03822317346930504,0,True,True,deconv,IS_with_same_inference_part
+2,-91.25090789794922,1,False,mnist,False,True,True,0.01186813786625862,0,True,True,deconv,IS_with_same_inference_part
