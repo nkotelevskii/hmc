@@ -4,3 +4,4 @@ K,Mean,N,amortize,data,decoder,eval_method,fixtransition,hoffmanlike,learnrevers
 2,-91.25090789794922,1,False,mnist,deconv,IS_with_same_inference_part,False,True,True,True,0.01186813786625862,True,0
 2,-89.18521118164062,1,False,mnist,deconv,IS_with_separately_trained_inference_part,False,True,True,True,0.07282167673110962,True,0
 1,-88.97655487060547,1,False,mnist,deconv,IS_with_separately_trained_inference_part,False,True,True,True,0.02994104661047458,True,0
+5,-105.6229476928711,1,False,mnist,deconv,IS_with_separately_trained_inference_part,False,True,True,True,0.07168055325746536,True,0
