@@ -67,7 +67,7 @@ def get_args():
     
     args.num_batches = 20000
     args.num_epoches = 1000
-    args.early_stopping_tolerance = 5000
+    args.early_stopping_tolerance = 50
     
     
     args.neutralizing_idea = False  # if we want to perform HMC in warped space

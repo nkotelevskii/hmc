@@ -1,4 +1,6 @@
-K,Mean,N,amortize,data,fixtransition,hoffmanlike,learnreverse,std,vanillaepoches,separateparams,usebatchnorm,decoder,eval_method
-2,-98.73,1,False,mnist,False,False,True,0.03,0,True,True,deconv,IS_with_same_inference_part
-1,-90.0915298461914,1,False,mnist,False,True,True,0.03822317346930504,0,True,True,deconv,IS_with_same_inference_part
-2,-91.25090789794922,1,False,mnist,False,True,True,0.01186813786625862,0,True,True,deconv,IS_with_same_inference_part
+K,Mean,N,amortize,data,decoder,eval_method,fixtransition,hoffmanlike,learnreverse,separateparams,std,usebatchnorm,vanillaepoches
+2,-98.73,1,False,mnist,deconv,IS_with_same_inference_part,False,False,True,True,0.03,True,0
+1,-90.0915298461914,1,False,mnist,deconv,IS_with_same_inference_part,False,True,True,True,0.03822317346930504,True,0
+2,-91.25090789794922,1,False,mnist,deconv,IS_with_same_inference_part,False,True,True,True,0.01186813786625862,True,0
+2,-89.18521118164062,1,False,mnist,deconv,IS_with_separately_trained_inference_part,False,True,True,True,0.07282167673110962,True,0
+1,-88.97655487060547,1,False,mnist,deconv,IS_with_separately_trained_inference_part,False,True,True,True,0.02994104661047458,True,0
