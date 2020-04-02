@@ -6,3 +6,5 @@ K,Mean,N,amortize,data,decoder,eval_method,fixtransition,hoffmanlike,learnrevers
 1,-88.97655487060547,1,False,mnist,deconv,IS_with_separately_trained_inference_part,False,True,True,True,0.02994104661047458,True,0
 5,-105.6229476928711,1,False,mnist,deconv,IS_with_separately_trained_inference_part,False,True,True,True,0.07168055325746536,True,0
 5,-110.90935516357422,1,False,mnist,deconv,IS_with_same_inference_part,False,True,True,True,0.015964332967996597,True,0
+1,-93.09838104248048,5,False,mnist,deconv,IS_with_same_inference_part,False,True,True,True,0.04810165986418724,True,0
+1,-90.682373046875,5,False,mnist,deconv,IS_with_separately_trained_inference_part,False,True,True,True,0.030605103820562363,True,0

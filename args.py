@@ -89,8 +89,8 @@ def get_args():
 
     ########################################### Data Params ###########################################
     # Multivariate normal
-    args['loc'] = torch.tensor([0., 0.], dtype=args.torchType, device=args.device) # loc for Gaussian target
-    args['cov_matrix'] = torch.tensor([[50.05, -49.95], [-49.95, 50.05]], dtype=args.torchType, device=args.device) # cov_matrix for Gaussian target
+    args['loc'] = torch.tensor([10., 0.], dtype=args.torchType, device=args.device) # loc for Gaussian target
+    args['cov_matrix'] = torch.tensor([[5, -2], [-2, 5]], dtype=args.torchType, device=args.device) # cov_matrix for Gaussian target
     args['true_mean'] = torch.zeros(args['z_dim'], device=args.device, dtype=args.torchType)
 
     # GMM (two gaussians)
