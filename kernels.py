@@ -76,7 +76,7 @@ class HMC_our(nn.Module):
         # log_jac = -p_old.shape[1] * torch.log(alpha)
         # return [z_, p_, p_old_refreshed, log_jac]
 
-    def make_transition(self, q_old, p_old, target_distr, k=None, x=None):
+    def make_transition(self, q_old, p_old, target_distr, k=None, x=None, flows=None, args=None, get_prior=None, prior_flow=None):
         """
         The function returns directions (-1, 0 or +1), sampled in the current positions
         Input:
@@ -100,8 +100,8 @@ class HMC_our(nn.Module):
         ############ Then we compute new points and densities ############
         q_upd, p_upd = self._forward_step(q_old=q_old, p_old=p_ref, k=k, target=target_distr, x=x)
 
-        target_log_density_f = target_distr.get_logdensity(z=q_upd, x=x) + self.std_normal.log_prob(p_upd).sum(1)
-        target_log_density_old = target_distr.get_logdensity(z=q_old, x=x) + self.std_normal.log_prob(p_ref).sum(1)
+        target_log_density_f = target_distr.get_logdensity(z=q_upd, x=x, prior=get_prior, args=args, prior_flow=prior_flow) + self.std_normal.log_prob(p_upd).sum(1)
+        target_log_density_old = target_distr.get_logdensity(z=q_old, x=x, prior=get_prior, args=args, prior_flow=prior_flow) + self.std_normal.log_prob(p_ref).sum(1)
 
         log_t = target_log_density_f - target_log_density_old
         log_1_t = torch.logsumexp(torch.cat([torch.zeros_like(log_t).view(-1, 1),
@@ -220,7 +220,7 @@ class HMC_vanilla(nn.Module):
         # log_jac = -p_old.shape[1] * torch.log(alpha)
         # return [z_, p_, p_old_refreshed, log_jac]
 
-    def make_transition(self, q_old, p_old, target_distr, k=None, x=None, flows=None):
+    def make_transition(self, q_old, p_old, target_distr, k=None, x=None, flows=None, args=None, get_prior=None, prior_flow=None):
         """
         The function returns directions (-1, 0 or +1), sampled in the current positions
         Input:
@@ -264,7 +264,7 @@ class HMC_vanilla(nn.Module):
 
         q_new = torch.where((a == self.device_zero)[:, None], q_old, q_upd)
         p_new = torch.where((a == self.device_zero)[:, None], p_ref, p_upd)
-        
+
         return q_new, p_new, None, None, a, q_upd
 
     def get_grad(self, q, target, x=None, flows=None):

@@ -34,10 +34,13 @@ def get_args():
     
     args.vanilla_vae_epoches = 0
     args.z_dim = 64 # Data dimensionality
-    args.K = 2 # How many different kernels to train
-    args.N = 2 ## Number of Leapfrogs
+    args.K = 5 # How many different kernels to train
+    args.N = 1 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
+    
+    args.nf_prior = 'IAF'
+    args.num_flows_prior = 3
     
     args.separate_params = True # Whether to separate params for training our alg or not
     args.hoffman_idea = True and args.separate_params ## Whether to use Hoffman's idea of separating objectives or not (note that usable only if separate params == True)
