@@ -362,7 +362,7 @@ class Accept_func(nn.Module):
         #cat_z_mu_a = torch.cat([z_, mu_, a_], dim=1)
         cat_all = torch.cat([q_old_, q_new_, h_], dim=1)
         h1 = torch.relu(self.linear_hidden(cat_all))
-        probs = torch.relu(self.linear_out(h1))
+        probs = nn.functional.softplus(self.linear_out(h1))
         log_prob = torch.log(probs)
         return log_prob
 
