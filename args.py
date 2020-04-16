@@ -27,7 +27,7 @@ def get_args():
     args.n_samples = 1 # how many samples for estimation to take
     args.n_alpha = None # None if itsnot needed
     
-    
+    args.learnable_accept = True
     args.learning_rate = 1e-3 # either common lr (if saparate params = False), or lr only for generative network
     args.learning_rate_vanilla = 1e-3
     args.learning_rate_inference = 1e-3
@@ -130,3 +130,8 @@ def get_args():
     args['covs'] = [torch.eye(2, dtype=args.torchType, device=args.device)] * args['num_gauss']   # list of covariance matrices for each of these gaussians
     
     return args
+
+
+
+
+

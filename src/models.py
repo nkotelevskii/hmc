@@ -1,3 +1,4 @@
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -28,6 +29,7 @@ class Inf_network(nn.Module):
         self.linear = nn.Linear(in_features=512, out_features=450)
         self.mu = nn.Linear(in_features=450, out_features=self.z_dim)
         self.sigma = nn.Linear(in_features=450, out_features=self.z_dim)
+        self.h = nn.Linear(in_features=450, out_features=self.z_dim)
 
     def forward(self, x):
         h1 = F.softplus(self.conv1(x))
@@ -37,7 +39,8 @@ class Inf_network(nn.Module):
         h4 = F.softplus(self.linear(h3_flat))
         mu = self.mu(h4)
         sigma = F.softplus(self.sigma(h4))
-        return mu, sigma
+        h = self.h(h4)
+        return mu, sigma,h
 
 
 class Gen_network(nn.Module):
@@ -118,3 +121,6 @@ class Gen_network_simple(nn.Module):
         mu = self.mu(h4)
         sigma = F.softplus(self.sigma(h4))
         return mu, sigma
+
+
+
