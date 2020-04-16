@@ -106,7 +106,9 @@ class HMC_our(nn.Module):
         target_log_density_old = target_distr.get_logdensity(z=q_old, x=x) + self.std_normal.log_prob(p_ref).sum(1)
         
         if self.learnable_accept:
-            log_t = accept_func(q_upd, q_old, h) + self.std_normal.log_prob(p_upd).sum(1) - self.std_normal.log_prob(p_ref).sum(1)
+            log_t = accept_func(q_upd, q_old, h).view(-1)+ self.std_normal.log_prob(p_upd).sum(1) - self.std_normal.log_prob(p_ref).sum(1)
+            #print((accept_func(q_upd, q_old, h)).shape)
+            #print((self.std_normal.log_prob(p_upd).sum(1)).shape)
             log_1_t = torch.logsumexp(torch.cat([torch.zeros_like(log_t).view(-1, 1),
                                                  log_t.view(-1, 1)], dim=-1), dim=-1) #log(1+t)
         else:
