@@ -339,9 +339,9 @@ class Reverse_kernel_sampling(nn.Module):
         log_prob = torch.sum(torch.log(probs), dim=1)
         return log_prob
 
-class Accept_func(nn.module):
+class Accept_func(nn.Module):
     def __init__(self, kwargs):
-        super(Reverse_kernel, self).__init__()
+        super(Accept_func, self).__init__()
         self.device = kwargs.device
         self.device_one = torch.tensor(1., dtype=kwargs.torchType, device=self.device)
         self.z_dim = kwargs.z_dim
