@@ -271,7 +271,10 @@ class NN_bernoulli(Target):
         """
         p_x_given_z_logits = self.decoder(z)
         p_x_given_z = torch.distributions.Bernoulli(logits=p_x_given_z_logits[0])
-        expected_log_likelihood = torch.sum(p_x_given_z.log_prob(x), [1, 2, 3])
+        if (len(p_x_given_z.shape) == 4):
+            expected_log_likelihood = torch.sum(p_x_given_z.log_prob(x), [1, 2, 3])
+        else:
+            expected_log_likelihood = torch.sum(p_x_given_z.log_prob(x), 1)
         if prior_flow:
             log_likelihood = expected_log_likelihood
             log_density = log_likelihood + prior(args, z, prior_flow)
