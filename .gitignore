@@ -5,3 +5,5 @@ src/.ipynb_checkpoints/
 data/mnist/
 pics/
 models/mnist/*.pt
+eval_models/*.pt
+eval_models/

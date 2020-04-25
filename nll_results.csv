@@ -1,3 +1,5 @@
-data,K,N,fixtransition,amortize,learnreverse,vanillaepoches,Mean,std,hoffmanlike
-mnist,2,1,False,False,True,0,-98.73,0.03,False
-mnist,1,1,False,False,True,0,-90.0915298461914,0.03822317346930504,True
+K,Mean,N,amortize,data,eval_method,fixtransition,hoffmanlike,learnaccept,learnreverse,std,vanillaepoches
+2,-98.73,1,False,mnist,,False,False,,True,0.03,0
+1,-90.0915298461914,1,False,mnist,,False,True,,True,0.03822317346930504,0
+2,-89.90911102294922,2,False,mnist,IS_with_separately_trained_inference_part,False,True,True,True,0.05091696977615357,0
+2,-90.71316528320312,1,False,mnist,IS_with_separately_trained_inference_part,False,True,True,True,0.01908174715936184,0
