@@ -3,3 +3,4 @@ K,Mean,N,amortize,data,eval_method,fixtransition,hoffmanlike,learnaccept,learnre
 1,-90.0915298461914,1,False,mnist,,False,True,,True,0.03822317346930504,0
 2,-89.90911102294922,2,False,mnist,IS_with_separately_trained_inference_part,False,True,True,True,0.05091696977615357,0
 2,-90.71316528320312,1,False,mnist,IS_with_separately_trained_inference_part,False,True,True,True,0.01908174715936184,0
+2,-90.80947875976562,1,False,mnist,IS_with_separately_trained_inference_part,False,True,False,True,0.016202813014388084,0

@@ -27,14 +27,14 @@ def get_args():
     args.n_samples = 1 # how many samples for estimation to take
     args.n_alpha = None # None if itsnot needed
     
-    args.learnable_accept = True
+    args.learnable_accept = False
     args.learning_rate = 1e-3 # either common lr (if saparate params = False), or lr only for generative network
     args.learning_rate_vanilla = 1e-3
     args.learning_rate_inference = 1e-3
     
     args.vanilla_vae_epoches = 0
     args.z_dim = 64 # Data dimensionality
-    args.K = 1 # How many different kernels to train
+    args.K = 2 # How many different kernels to train
     args.N = 1 ## Number of Leapfrogs
     args.gamma = 0.1 ## Stepsize
     args.alpha = 0.5  ## For partial momentum refresh
@@ -62,7 +62,7 @@ def get_args():
     args.train_data_size = 15000
     args.train_batch_size = 100
     args.test_batch_size = 10 ## Batch size test
-    args.val_batch_size = 100 ## batch size validation
+    args.val_batch_size = 1000 ## batch size validation
     args.n_IS = 1000
     
     args.num_batches = 20000

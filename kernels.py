@@ -78,7 +78,7 @@ class HMC_our(nn.Module):
         # log_jac = -p_old.shape[1] * torch.log(alpha)
         # return [z_, p_, p_old_refreshed, log_jac]
 
-    def make_transition(self, q_old, p_old, target_distr, k=None, x=None, accept_func = None, h=None):
+    def make_transition(self, q_old, p_old, target_distr, k=None, x=None, accept_func=None, h=None):
         """
         The function returns directions (-1, 0 or +1), sampled in the current positions
         Input:
@@ -365,5 +365,6 @@ class Accept_func(nn.Module):
         probs = nn.functional.softplus(self.linear_out(h1))
         log_prob = torch.log(probs)
         return log_prob
+
 
 

@@ -17,6 +17,7 @@ class Dataset():
         self.device = device
         if args.data == 'mnist':
             data_train = datasets.MNIST(root='./data/mnist', download=True).train_data.type(torchType).to(device)
+            labels_train = datasets.MNIST(root='./data/mnist', download=True).train_labels.type(torchType).to(device)
             data_test = datasets.MNIST(root='./data/mnist', download=True, train=False).test_data.type(torchType).to(
                 device)
         elif args.data == 'kmnist':
@@ -55,6 +56,7 @@ class Dataset():
             data_train /= data_train.max()
             data_test /= data_test.max()
         self.validation = data_train[:args.vds].data
+        self.validation_labels = labels_train[:args.vds].data
         self.train = data_train[args.vds:].data
         self.test = data_test.data
 
@@ -67,9 +69,12 @@ class Dataset():
                                                             batch_size=self.train_batch_size, shuffle=True, **kwargs)
 
         self.n_IS = args.n_IS
-
+        
+        val_data = []
+        for i in range(self.validation.shape[0]):
+            val_data.append([self.validation[i], self.validation_labels[i]])
         self.val_batch_size = args.val_batch_size
-        self.val_dataloader = torch.utils.data.DataLoader(self.validation,
+        self.val_dataloader = torch.utils.data.DataLoader(val_data,
                                                           batch_size=self.val_batch_size, shuffle=False, **kwargs)
 
         self.test_batch_size = args.test_batch_size
@@ -91,7 +96,7 @@ class Dataset():
                 batch = batch.view([-1, self.img_c, self.img_h, self.img_w])
                 yield batch
 
-    def next_val_batch(self):
+    def next_val_batch(self, return_labels=False):
         """
         Validation batches will be used for ELBO estimates without importance
         sampling (could change)
@@ -100,9 +105,14 @@ class Dataset():
             for batch in self.val_dataloader:
                 yield batch 
         else:
-            for batch in self.val_dataloader:
+            for val_batch in self.val_dataloader:
+                batch = val_batch[0]
+                labels = val_batch[1]
                 batch = batch.view([-1, self.img_c, self.img_h, self.img_w])
-                yield batch
+                if return_labels:
+                    yield batch, labels
+                else:
+                    yield batch
 
     def next_test_batch(self):
         """
