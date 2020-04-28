@@ -6,3 +6,4 @@ data/mnist/
 pics/
 models/mnist/*.pt
 eval_models/*.pt
+.idea/*
