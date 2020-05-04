@@ -11,3 +11,5 @@ recommender/data/*
 recommender/*.pt
 recommender/src/*.pt
 recommender/models/*.pt
+pyproject.toml
+poetry.lock
