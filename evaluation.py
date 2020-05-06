@@ -47,7 +47,6 @@ class Target(nn.Module):
 
 
 def evaluation(encoder, decoder, data):
-#     pdb.set_trace()
     dataloader = torch.utils.data.DataLoader(data, batch_size=10, shuffle=False)
 
     args = dotdict({})
@@ -55,7 +54,7 @@ def evaluation(encoder, decoder, data):
     args.torchType = torch.float32
     args.std_normal = torch.distributions.Normal(loc=torch.tensor(0., dtype=args.torchType, device=args.device),
                                                 scale=torch.tensor(1., dtype=args.torchType, device=args.device))
-    n_IS = 1000
+    n_IS = 10000
 
     print('Method 1: Overdispersed encoder is running')
     means = []
@@ -200,7 +199,7 @@ if __name__ == '__main__':
          -1.5992, -0.8469]], dtype=torch.float32, device=device)
     std_normal = torch.distributions.Normal(loc=torch.tensor(0., dtype=torch.float32, device=device),
                                                 scale=torch.tensor(1., dtype=torch.float32, device=device))
-    data = torch.distributions.Bernoulli(probs=torch.sigmoid(std_normal.sample((100, 2)) @ true_theta)).sample()
+    data = torch.distributions.Bernoulli(probs=torch.sigmoid(std_normal.sample((10000, 2)) @ true_theta)).sample()
 
 
     names = [
