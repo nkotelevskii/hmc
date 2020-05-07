@@ -199,7 +199,7 @@ if __name__ == '__main__':
          -1.5992, -0.8469]], dtype=torch.float32, device=device)
     std_normal = torch.distributions.Normal(loc=torch.tensor(0., dtype=torch.float32, device=device),
                                                 scale=torch.tensor(1., dtype=torch.float32, device=device))
-    data = torch.distributions.Bernoulli(probs=torch.sigmoid(std_normal.sample((10000, 2)) @ true_theta)).sample()
+    data = torch.distributions.Bernoulli(probs=torch.sigmoid(std_normal.sample((5000, 2)) @ true_theta)).sample()
 
 
     names = [
