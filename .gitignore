@@ -7,3 +7,4 @@ pics/
 models/mnist/*.pt
 eval_models/*.pt
 .idea/*
+recommender/data/*
