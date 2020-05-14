@@ -59,7 +59,7 @@ def evaluation(encoder, decoder, data):
     print('Method 1: Overdispersed encoder is running')
     means = []
     stds = []
-    for n in tqdm(range(3)):
+    for n in tqdm(range(50)):
         nll = []
         for batch_raw in dataloader:
             batch = batch_raw.repeat(n_IS, 1)
@@ -85,108 +85,108 @@ def evaluation(encoder, decoder, data):
     logging.info('Method 1: Overdisperced encoder: {} +- {}'.format(np.array(means).mean(), np.array(stds).mean()))
     logging.info('-' * 100)
 
-    print('Method 2: Overdispersed encoder with HMC is running')
+#     print('Method 2: Overdispersed encoder with HMC is running')
 
-    args.N = 2
-    args.alpha = 0.5
-    args.gamma = 0.1
-    args.use_partialref = False
-    args.use_barker = False
-    transitions = HMC_vanilla(args)
+#     args.N = 2
+#     args.alpha = 0.5
+#     args.gamma = 0.1
+#     args.use_partialref = False
+#     args.use_barker = False
+#     transitions = HMC_vanilla(args)
 
-    n_warmup = 300
-    n_samples = 300
+#     n_warmup = 300
+#     n_samples = 300
 
-    target = Target(decoder, args)
+#     target = Target(decoder, args)
 
-    means = []
-    stds = []
-    for n in tqdm(range(3)):
-        nll = []
-        for batch_raw in dataloader:
-            batch = batch_raw.repeat(n_IS, 1)
-            mu_, sigma_ = encoder(batch)
+#     means = []
+#     stds = []
+#     for n in tqdm(range(3)):
+#         nll = []
+#         for batch_raw in dataloader:
+#             batch = batch_raw.repeat(n_IS, 1)
+#             mu_, sigma_ = encoder(batch)
             
-            u = args.std_normal.sample(mu_.shape)
-            z_  = mu_ + sigma_ * u
+#             u = args.std_normal.sample(mu_.shape)
+#             z_  = mu_ + sigma_ * u
 
-            momentum = args.std_normal.sample(z_.shape)
-            for i in range(n_warmup):
-                z_, momentum, _, _, _, _ = transitions.make_transition(z_, momentum, target, x=batch)
+#             momentum = args.std_normal.sample(z_.shape)
+#             for i in range(n_warmup):
+#                 z_, momentum, _, _, _, _ = transitions.make_transition(z_, momentum, target, x=batch)
 
-            samples = torch.tensor([], device=args.device, dtype=args.torchType)
+#             samples = torch.tensor([], device=args.device, dtype=args.torchType)
             
-            for i in range(n_samples):
-                z_, momentum, _, _, _, _ = transitions.make_transition(z_, momentum, target, x=batch)
-                samples = torch.cat([samples, z_[None]], 0)
+#             for i in range(n_samples):
+#                 z_, momentum, _, _, _, _ = transitions.make_transition(z_, momentum, target, x=batch)
+#                 samples = torch.cat([samples, z_[None]], 0)
                             
-            sigma = 1.2 * sigma_
-            mu = samples.mean(0)
+#             sigma = 1.2 * sigma_
+#             mu = samples.mean(0)
             
-            z = mu + sigma * std_normal.sample(mu.shape)
+#             z = mu + sigma * std_normal.sample(mu.shape)
 
-            probs = torch.sigmoid(decoder(z))
-            log_p = torch.distributions.Bernoulli(probs=probs).log_prob(batch).sum(1)
-            KLD = (-0.5 * (1 + 2 * sigma.log() - mu.pow(2) - sigma.pow(2))).sum(1)
-            nll_lse = torch.logsumexp((log_p - KLD).view([n_IS, -1]), 0)
-            nll_current = -np.log(n_IS) + torch.mean(nll_lse)
-            nll.append(nll_current.cpu().detach().numpy())
-        means.append(np.array(nll).mean())
-        stds.append(np.array(nll).std())
-    print('Method 2: Overdispersed encoder with HMC', np.array(means).mean(), '+-', np.array(stds).mean())
-    print('\n')
-    print('-' * 100)
-    print('\n')
+#             probs = torch.sigmoid(decoder(z))
+#             log_p = torch.distributions.Bernoulli(probs=probs).log_prob(batch).sum(1)
+#             KLD = (-0.5 * (1 + 2 * sigma.log() - mu.pow(2) - sigma.pow(2))).sum(1)
+#             nll_lse = torch.logsumexp((log_p - KLD).view([n_IS, -1]), 0)
+#             nll_current = -np.log(n_IS) + torch.mean(nll_lse)
+#             nll.append(nll_current.cpu().detach().numpy())
+#         means.append(np.array(nll).mean())
+#         stds.append(np.array(nll).std())
+#     print('Method 2: Overdispersed encoder with HMC', np.array(means).mean(), '+-', np.array(stds).mean())
+#     print('\n')
+#     print('-' * 100)
+#     print('\n')
     
-    logging.info('Method 2: Overdispersed encoder with HMC: {} +- {}'.format(np.array(means).mean(), np.array(stds).mean()))
-    logging.info('-' * 100)
+#     logging.info('Method 2: Overdispersed encoder with HMC: {} +- {}'.format(np.array(means).mean(), np.array(stds).mean()))
+#     logging.info('-' * 100)
 
 
-    print('Method 3: Overdispersed variance of final HMC samples is running')
+#     print('Method 3: Overdispersed variance of final HMC samples is running')
 
-    target = Target(decoder, args)
+#     target = Target(decoder, args)
 
-    means = []
-    stds = []
-    for n in tqdm(range(3)):
-        nll = []
-        for batch_raw in dataloader:
-            batch = batch_raw.repeat(n_IS, 1)
-            mu_, sigma_ = encoder(batch)
+#     means = []
+#     stds = []
+#     for n in tqdm(range(3)):
+#         nll = []
+#         for batch_raw in dataloader:
+#             batch = batch_raw.repeat(n_IS, 1)
+#             mu_, sigma_ = encoder(batch)
             
-            u = args.std_normal.sample(mu_.shape)
-            z_  = mu_ + sigma_ * u
+#             u = args.std_normal.sample(mu_.shape)
+#             z_  = mu_ + sigma_ * u
 
-            momentum = args.std_normal.sample(z_.shape)
-            for i in range(n_warmup):
-                z_, momentum, _, _, _, _ = transitions.make_transition(z_, momentum, target, x=batch)
+#             momentum = args.std_normal.sample(z_.shape)
+#             for i in range(n_warmup):
+#                 z_, momentum, _, _, _, _ = transitions.make_transition(z_, momentum, target, x=batch)
 
-            samples = torch.tensor([], device=args.device, dtype=args.torchType)
-            for i in range(n_samples):
-                z_, momentum, _, _, _, _ = transitions.make_transition(z_, momentum, target, x=batch)
-                samples = torch.cat([samples, z_[None]], 0)
+#             samples = torch.tensor([], device=args.device, dtype=args.torchType)
+#             for i in range(n_samples):
+#                 z_, momentum, _, _, _, _ = transitions.make_transition(z_, momentum, target, x=batch)
+#                 samples = torch.cat([samples, z_[None]], 0)
 
-            mu = samples.mean(0)
-            sigma = samples.std(0) * 1.2
+#             mu = samples.mean(0)
+#             sigma = samples.std(0) * 1.2
             
-            z = mu + sigma * std_normal.sample(mu.shape)
+#             z = mu + sigma * std_normal.sample(mu.shape)
 
-            probs = torch.sigmoid(decoder(z))
-            log_p = torch.distributions.Bernoulli(probs=probs).log_prob(batch).sum(1)
-            KLD = (-0.5 * (1 + 2 * sigma.log() - mu.pow(2) - sigma.pow(2))).sum(1)
-            nll_lse = torch.logsumexp((log_p - KLD).view([n_IS, -1]), 0)
-            nll_current = -np.log(n_IS) + torch.mean(nll_lse)
-            nll.append(nll_current.cpu().detach().numpy())
-        means.append(np.array(nll).mean())
-        stds.append(np.array(nll).std())
-    print('Method 3: Overdispersed variance of final HMC samples', np.array(means).mean(), '+-', np.array(stds).mean())
+#             probs = torch.sigmoid(decoder(z))
+#             log_p = torch.distributions.Bernoulli(probs=probs).log_prob(batch).sum(1)
+#             KLD = (-0.5 * (1 + 2 * sigma.log() - mu.pow(2) - sigma.pow(2))).sum(1)
+#             nll_lse = torch.logsumexp((log_p - KLD).view([n_IS, -1]), 0)
+#             nll_current = -np.log(n_IS) + torch.mean(nll_lse)
+#             nll.append(nll_current.cpu().detach().numpy())
+#         means.append(np.array(nll).mean())
+#         stds.append(np.array(nll).std())
+#     print('Method 3: Overdispersed variance of final HMC samples', np.array(means).mean(), '+-', np.array(stds).mean())
     
-    logging.info('Method 3: Overdispersed variance of final HMC samples: {} +- {}'.format(np.array(means).mean(), np.array(stds).mean()))
-    logging.info('-' * 100)
+#     logging.info('Method 3: Overdispersed variance of final HMC samples: {} +- {}'.format(np.array(means).mean(), np.array(stds).mean()))
+#     logging.info('-' * 100)
     
-    print('\n')
-    print('-' * 100)
-    print('\n')
+#     print('\n')
+#     print('-' * 100)
+#     print('\n')
     
     print('Finish!')
 
@@ -199,7 +199,7 @@ if __name__ == '__main__':
          -1.5992, -0.8469]], dtype=torch.float32, device=device)
     std_normal = torch.distributions.Normal(loc=torch.tensor(0., dtype=torch.float32, device=device),
                                                 scale=torch.tensor(1., dtype=torch.float32, device=device))
-    data = torch.distributions.Bernoulli(probs=torch.sigmoid(std_normal.sample((5000, 2)) @ true_theta)).sample()
+    data = torch.distributions.Bernoulli(probs=torch.sigmoid(std_normal.sample((50000, 2)) @ true_theta)).sample()
 
 
     names = [
