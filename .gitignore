@@ -9,4 +9,4 @@ eval_models/*.pt
 .idea/*
 recommender/data/*
 recommender/*.pt
-recommender/src/.*pt
+recommender/src/*.pt

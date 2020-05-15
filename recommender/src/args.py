@@ -17,29 +17,34 @@ def get_args():
     args.device = device
     args.torchType = torch.float32
 
+    ## Data and training parameters
     args.data = 'ml-20m'
+    args.train_batch_size = 500
+    args.val_batch_size = 2000
+    args.n_epoches = 200
 
     args.total_anneal_steps = 200000
     args.anneal_cap = 0.2
 
-    ###############################
-    ####### Model Params ##########
-    ###############################
+    args.learning_rate = 1e-3
 
-    args.learning_rate = 1e-3  # either common lr (if saparate params = False), or lr only for generative network
+    args.print_info_ = 1
 
-    args.print_info_ = 10
+    ## Transition parameters (only for our vae)
+    args.K = 2  # How many different kernels to train
+    args.N = 2  # Number of Leapfrogs
+    args.gamma = 0.1  # Stepsize
+    args.alpha = 0.5   # For partial momentum refresh
+    args.use_barker = True
+    args.learnable_reverse = True
 
-    args.n_epoches = 200
-    args.train_batch_size = 500
-    args.val_batch_size = 2000
-
+    ## Metric
     args.metric = NDCG_binary_at_k_batch
 
-    args.model = 'MultiVAE'
+    args.model = 'Multi_our_VAE'  # MultiVAE, MultiDAE, Multi_our_VAE
     if args.model == 'MultiDAE':
         args.l2_coeff = 0.01 / args.train_batch_size
-    elif args.model == 'MultiVAE':
+    else:
         args.l2_coeff = 0.
 
     return args
