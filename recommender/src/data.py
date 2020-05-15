@@ -57,6 +57,18 @@ class Dataset():
             self.vad_data_tr, self.vad_data_te = load_tr_te_data(os.path.join(pro_dir, 'validation_tr.csv'),
                                                        os.path.join(pro_dir, 'validation_te.csv'), n_items)
             self.N_vad = self.vad_data_tr.shape[0]
+        elif args.data == 'foursquare':
+            pass
+        elif args.data == 'gowalla':
+            self.train_data = pd.read_csv('./data/gowalla/train.tsv', delimiter='\t', names=['u', 'i'])
+            self.test_data = pd.read_csv('./data/gowalla/test.tsv', delimiter='\t', names=['u', 'i'])
+            self.val_data = pd.read_csv('./data/gowalla/tune.tsv', delimiter='\t', names=['u', 'i'])
+            self.n_items = len(self.train_data['i'].max())
+            pass
+        elif args.data == 'ml-25m':
+            pass
+        elif args.data == 'ml-100k':
+            pass
         else:
             raise ModuleNotFoundError
 
