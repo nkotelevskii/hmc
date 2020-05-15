@@ -42,7 +42,7 @@ class Dataset():
             DATA_DIR = data_dir + str(self.data)
         else:
             DATA_DIR = '../data/{}'.format(self.data)
-        if args.data == 'ml-20m':
+        if args.data == 'ml20m':
             pro_dir = os.path.join(DATA_DIR, 'pro_sg')
             unique_sid = list()
             with open(os.path.join(pro_dir, 'unique_sid.txt'), 'r') as f:
@@ -65,9 +65,9 @@ class Dataset():
             self.val_data = pd.read_csv('./data/gowalla/tune.tsv', delimiter='\t', names=['u', 'i'])
             self.n_items = len(self.train_data['i'].max())
             pass
-        elif args.data == 'ml-25m':
+        elif args.data == 'ml25m':
             pass
-        elif args.data == 'ml-100k':
+        elif args.data == 'ml100k':
             pass
         else:
             raise ModuleNotFoundError
