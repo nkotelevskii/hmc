@@ -1,7 +1,6 @@
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-import pdb
 
 
 class HMC_our(nn.Module):
@@ -243,6 +242,7 @@ class HMC_vanilla(nn.Module):
             s = target.get_logdensity(x=x, z=q_init)
             grad = torch.autograd.grad(s.sum(), q_init)[0]
         return grad
+
 
 class Reverse_kernel(nn.Module):
     def __init__(self, kwargs):

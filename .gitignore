@@ -10,3 +10,4 @@ eval_models/*.pt
 recommender/data/*
 recommender/*.pt
 recommender/src/*.pt
+recommender/models/*.pt

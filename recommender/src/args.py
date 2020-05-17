@@ -1,6 +1,5 @@
 import torch
-import numpy as np
-from metrics import NDCG_binary_at_k_batch, Recall_at_k_batch
+from metrics import NDCG_binary_at_k_batch
 
 
 def get_args(args):
@@ -10,10 +9,9 @@ def get_args(args):
         __setattr__ = dict.__setitem__
         __delattr__ = dict.__delitem__
 
-    device = "cuda:1" if torch.cuda.is_available() else "cpu"
     args = dotdict(vars(args))
 
-    args.device = device
+    args.device = 'cpu' if args.gpu == -1 else 'cuda:{}'.format(args.gpu)
     args.torchType = torch.float32
 
     ## Data and training parameters
@@ -21,21 +19,25 @@ def get_args(args):
     args.val_batch_size = 2000
     args.n_epoches = 200
 
-    args.total_anneal_steps = 200000
-    args.anneal_cap = 0.2
-
     args.learning_rate = 1e-3
 
     args.print_info_ = 1
 
     ## Transition parameters (only for our vae)
     args.gamma = 0.1  # Stepsize
-    args.alpha = 0.5   # For partial momentum refresh
+    args.alpha = 0.5  # For partial momentum refresh
     args.use_barker = True
     args.use_partialref = True
 
+    args.annealing = True if args.annealing == 'True' else False
     args.learnable_reverse = True if args.learnable_reverse == 'True' else False
 
+    if args.annealing:
+        args.total_anneal_steps = 200000
+        args.anneal_cap = 0.2
+    else:
+        args.total_anneal_steps = 0
+        args.anneal_cap = 1.
 
     ## Metric
     args.metric = NDCG_binary_at_k_batch

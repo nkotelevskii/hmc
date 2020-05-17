@@ -1,5 +1,6 @@
-import numpy as np
 import bottleneck as bn
+import numpy as np
+
 
 def NDCG_binary_at_k_batch(X_pred, heldout_batch, k=100):
     '''
@@ -24,6 +25,7 @@ def NDCG_binary_at_k_batch(X_pred, heldout_batch, k=100):
                      for n in heldout_batch.getnnz(axis=1)])
     return DCG / IDCG
 
+
 def Recall_at_k_batch(X_pred, heldout_batch, k=100):
     batch_users = X_pred.shape[0]
 
@@ -36,5 +38,3 @@ def Recall_at_k_batch(X_pred, heldout_batch, k=100):
         np.float32)
     recall = tmp / np.minimum(k, X_true_binary.sum(axis=1))
     return recall
-
-
