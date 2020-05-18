@@ -5,6 +5,20 @@ import pandas as pd
 import torch
 from scipy import sparse
 
+def from_df_to_csr_matrix(df, col_user, col_item):
+    data=pd.get_dummies(df[col_item]).groupby(df[col_user]).apply(max)
+    df=pd.DataFrame(data)
+    coo_train_matrix = sparse.coo_matrix(df.values)
+    return coo_train_matrix.tocsr()
+
+def get_data_file_names(dataset):
+    datasets_paths = {
+        'foursquare' : ['./data/foursquare/train.tsv', './data/foursquare/tune.tsv', './data/foursquare/test.tsv'],
+        'gowalla' : ['./data/gowalla/train.tsv', './data/gowalla/tune.tsv', './data/gowalla/test.tsv'],
+        'ml25m' : ['./data/ml25m/train.tsv', './data/ml25m/tune.tsv', './data/ml25m/test.tsv'],
+        'ml100k' : ['./data/ml100k/train.tsv', './data/ml100k/tune.tsv', './data/ml100k/test.tsv']
+    }
+    return datasets_paths.get(dataset, "Invalid dataset name")
 
 def load_train_data(csv_file, n_items):
     tp = pd.read_csv(csv_file)
@@ -33,7 +47,6 @@ def load_tr_te_data(csv_file_tr, csv_file_te, n_items):
                                  (rows_te, cols_te)), dtype='float64', shape=(end_idx - start_idx + 1, n_items))
     return data_tr, data_te
 
-
 class Dataset():
     def __init__(self, args, data_dir=None):
         self.device = args.device
@@ -59,18 +72,54 @@ class Dataset():
             self.vad_data_tr, self.vad_data_te = load_tr_te_data(os.path.join(pro_dir, 'validation_tr.csv'),
                                                                  os.path.join(pro_dir, 'validation_te.csv'), n_items)
             self.N_vad = self.vad_data_tr.shape[0]
-        elif args.data == 'foursquare':
-            pass
-        elif args.data == 'gowalla':
-            self.train_data = pd.read_csv('./data/gowalla/train.tsv', delimiter='\t', names=['u', 'i'])
-            self.test_data = pd.read_csv('./data/gowalla/test.tsv', delimiter='\t', names=['u', 'i'])
-            self.val_data = pd.read_csv('./data/gowalla/tune.tsv', delimiter='\t', names=['u', 'i'])
-            self.n_items = len(self.train_data['i'].max())
-            pass
-        elif args.data == 'ml25m':
-            pass
-        elif args.data == 'ml100k':
-            pass
+        elif args.data in {'foursquare', 'gowalla', 'ml25m', 'ml100k'}:
+            paths = get_data_file_names(args.data)
+
+            train_file = paths[0]
+            tune_file = paths[1]
+            test_file = paths[2]
+
+            train_data = pd.read_csv(train_file, sep='\t', names=['u', 'i'])
+            test_data = pd.read_csv(test_file, sep='\t', names=['u', 'i'])
+            val_data = pd.read_csv(test_file, sep='\t', names=['u', 'i'])
+
+            self.n_items = train_data.i.unique().shape[0]
+            self.n_users = train_data.u.unique().shape[0]
+
+            self.train_data = from_df_to_csr_matrix(train_data, 'u', 'i')
+
+            assert (self.n_users, self.n_items) == self.train_data.shape
+            self.N = self.train_data.shape[0]
+
+            joined_df = pd.merge(train_data.groupby('u')['i'].apply(list).reset_index(name='listTr'), val_data.groupby('u')['i'].apply(list).reset_index(name='listTv'), how='right', on=['u'])
+
+            vad_data_tr_list = []
+            vad_data_te_list = []
+            for _, row in joined_df.iterrows():
+                tr = row["listTr"]
+                for item in tr:
+                    v = {
+                        'u' : row['u'],
+                        'i' : item
+                    }
+                    vad_data_tr_list.append(v)
+
+                te = row["listTv"]
+                for item in te:
+                    v = {
+                        'u' : row['u'],
+                        'i' : item
+                    }
+                    vad_data_te_list.append(v)
+
+            vad_data_tr = pd.DataFrame(vad_data_tr_list)
+            vad_data_te = pd.DataFrame(vad_data_te_list)
+
+            self.vad_data_tr = from_df_to_csr_matrix(vad_data_tr, 'u', 'i')
+            self.vad_data_te = from_df_to_csr_matrix(vad_data_te, 'u', 'i')
+
+            self.N_vad = self.vad_data_tr.shape[0]
+            assert self.N_vad == self.vad_data_te.shape[0]
         else:
             raise ModuleNotFoundError
 
