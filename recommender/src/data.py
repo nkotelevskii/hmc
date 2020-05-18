@@ -5,20 +5,23 @@ import pandas as pd
 import torch
 from scipy import sparse
 
+
 def from_df_to_csr_matrix(df, col_user, col_item):
-    data=pd.get_dummies(df[col_item]).groupby(df[col_user]).apply(max)
-    df=pd.DataFrame(data)
+    data = pd.get_dummies(df[col_item]).groupby(df[col_user]).apply(max)
+    df = pd.DataFrame(data)
     coo_train_matrix = sparse.coo_matrix(df.values)
     return coo_train_matrix.tocsr()
 
+
 def get_data_file_names(dataset):
     datasets_paths = {
-        'foursquare' : ['./data/foursquare/train.tsv', './data/foursquare/tune.tsv', './data/foursquare/test.tsv'],
-        'gowalla' : ['./data/gowalla/train.tsv', './data/gowalla/tune.tsv', './data/gowalla/test.tsv'],
-        'ml25m' : ['./data/ml25m/train.tsv', './data/ml25m/tune.tsv', './data/ml25m/test.tsv'],
-        'ml100k' : ['./data/ml100k/train.tsv', './data/ml100k/tune.tsv', './data/ml100k/test.tsv']
+        'foursquare': ['../data/foursquare/train.tsv', '../data/foursquare/tune.tsv', '../data/foursquare/test.tsv'],
+        'gowalla': ['../data/gowalla/train.tsv', '../data/gowalla/tune.tsv', '../data/gowalla/test.tsv'],
+        'ml25m': ['../data/ml25m/train.tsv', '../data/ml25m/tune.tsv', '../data/ml25m/test.tsv'],
+        'ml100k': ['../data/ml100k/train.tsv', '../data/ml100k/tune.tsv', '../data/ml100k/test.tsv']
     }
     return datasets_paths.get(dataset, "Invalid dataset name")
+
 
 def load_train_data(csv_file, n_items):
     tp = pd.read_csv(csv_file)
@@ -46,6 +49,7 @@ def load_tr_te_data(csv_file_tr, csv_file_te, n_items):
     data_te = sparse.csr_matrix((np.ones_like(rows_te),
                                  (rows_te, cols_te)), dtype='float64', shape=(end_idx - start_idx + 1, n_items))
     return data_tr, data_te
+
 
 class Dataset():
     def __init__(self, args, data_dir=None):
@@ -91,7 +95,9 @@ class Dataset():
             assert (self.n_users, self.n_items) == self.train_data.shape
             self.N = self.train_data.shape[0]
 
-            joined_df = pd.merge(train_data.groupby('u')['i'].apply(list).reset_index(name='listTr'), val_data.groupby('u')['i'].apply(list).reset_index(name='listTv'), how='right', on=['u'])
+            joined_df = pd.merge(train_data.groupby('u')['i'].apply(list).reset_index(name='listTr'),
+                                 val_data.groupby('u')['i'].apply(list).reset_index(name='listTv'), how='right',
+                                 on=['u'])
 
             vad_data_tr_list = []
             vad_data_te_list = []
@@ -99,16 +105,16 @@ class Dataset():
                 tr = row["listTr"]
                 for item in tr:
                     v = {
-                        'u' : row['u'],
-                        'i' : item
+                        'u': row['u'],
+                        'i': item
                     }
                     vad_data_tr_list.append(v)
 
                 te = row["listTv"]
                 for item in te:
                     v = {
-                        'u' : row['u'],
-                        'i' : item
+                        'u': row['u'],
+                        'i': item
                     }
                     vad_data_te_list.append(v)
 

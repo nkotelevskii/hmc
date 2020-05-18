@@ -7,7 +7,7 @@ pics/
 models/mnist/*.pt
 eval_models/*.pt
 .idea/*
-recommender/data/*
+recommender/data/ml20m/*
 recommender/*.pt
 recommender/src/*.pt
 recommender/models/*.pt
