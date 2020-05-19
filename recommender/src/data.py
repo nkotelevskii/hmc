@@ -4,14 +4,7 @@ import numpy as np
 import pandas as pd
 import torch
 from scipy import sparse
-
-
-def from_df_to_csr_matrix(df, col_user, col_item):
-    data = pd.get_dummies(df[col_item]).groupby(df[col_user]).apply(max)
-    df = pd.DataFrame(data)
-    coo_train_matrix = sparse.coo_matrix(df.values)
-    return coo_train_matrix.tocsr()
-
+from functools import reduce
 
 def get_data_file_names(dataset):
     datasets_paths = {
@@ -84,15 +77,21 @@ class Dataset():
             test_file = paths[2]
 
             train_data = pd.read_csv(train_file, sep='\t', names=['u', 'i'])
+            val_data = pd.read_csv(tune_file, sep='\t', names=['u', 'i'])
             test_data = pd.read_csv(test_file, sep='\t', names=['u', 'i'])
-            val_data = pd.read_csv(test_file, sep='\t', names=['u', 'i'])
 
-            self.n_items = train_data.i.unique().shape[0]
+            all_items = reduce(np.union1d, (train_data.i.unique(), val_data.i.unique(), test_data.i.unique()))
+
+            self.n_items = int(all_items.max())+1
             self.n_users = train_data.u.unique().shape[0]
+            print("Loaded:")
+            print(f"    - {self.n_users} users")
+            print(f"    - {self.n_items} items")
+            assert train_data['u'].max() + 1 == self.n_users
 
-            self.train_data = from_df_to_csr_matrix(train_data, 'u', 'i')
+            rows, cols = train_data['u'], train_data['i']
+            self.train_data = sparse.csr_matrix((np.ones_like(rows), (rows, cols)), dtype='float64', shape=(self.n_users, self.n_items))
 
-            assert (self.n_users, self.n_items) == self.train_data.shape
             self.N = self.train_data.shape[0]
 
             joined_df = pd.merge(train_data.groupby('u')['i'].apply(list).reset_index(name='listTr'),
@@ -101,31 +100,45 @@ class Dataset():
 
             vad_data_tr_list = []
             vad_data_te_list = []
+            n_val_users = 0
+            min_u = 1000000
+            max_u = 0
             for _, row in joined_df.iterrows():
+                n_val_users += 1
+                if row['u'] < min_u:
+                    min_u = row['u']
+                if row['u'] > max_u:
+                    max_u = row['u']
                 tr = row["listTr"]
                 for item in tr:
-                    v = {
-                        'u': row['u'],
-                        'i': item
-                    }
+                    v = [
+                        row['u'],
+                        item
+                    ]
                     vad_data_tr_list.append(v)
-
                 te = row["listTv"]
                 for item in te:
-                    v = {
-                        'u': row['u'],
-                        'i': item
-                    }
+                    v = [
+                        row['u'],
+                        item
+                    ]
                     vad_data_te_list.append(v)
+            vad_data_tr_list = np.array(vad_data_tr_list)
+            vad_data_te_list = np.array(vad_data_te_list)
 
-            vad_data_tr = pd.DataFrame(vad_data_tr_list)
-            vad_data_te = pd.DataFrame(vad_data_te_list)
+            rows_tr = vad_data_tr_list[:,0] - min_u
+            cols_tr = vad_data_tr_list[:,1]
+            data_tr = np.ones(rows_tr.shape, dtype=int)
+            self.vad_data_tr = sparse.coo_matrix((data_tr, (rows_tr, cols_tr)), shape=(max_u - min_u + 1, self.n_items)).tocsr()
 
-            self.vad_data_tr = from_df_to_csr_matrix(vad_data_tr, 'u', 'i')
-            self.vad_data_te = from_df_to_csr_matrix(vad_data_te, 'u', 'i')
+            rows_te = vad_data_te_list[:,0] - min_u
+            cols_te = vad_data_te_list[:,1]
+            data_te = np.ones(rows_te.shape, dtype=int)
+            self.vad_data_te = sparse.coo_matrix((data_te, (rows_te, cols_te)), shape=(max_u - min_u + 1, self.n_items)).tocsr()
 
             self.N_vad = self.vad_data_tr.shape[0]
             assert self.N_vad == self.vad_data_te.shape[0]
+            assert self.vad_data_te.shape == self.vad_data_tr.shape
         else:
             raise ModuleNotFoundError
 
@@ -143,6 +156,7 @@ class Dataset():
             if sparse.isspmatrix(X):
                 X = X.toarray()
             X = torch.tensor(X, dtype=torch.float32).to(self.device)
+            print(X.shape)
             yield X
 
     def next_val_batch(self):
@@ -155,6 +169,8 @@ class Dataset():
             end_idx = min(st_idx + self.val_batch_size, self.N_vad)
             X = self.vad_data_tr[idxlist_vad[st_idx:end_idx]]
             X_ = self.vad_data_te[idxlist_vad[st_idx:end_idx]]
+            print(X.shape)
+            print(X_.shape)
             if sparse.isspmatrix(X):
                 X = X.toarray()
             X = torch.tensor(X, dtype=torch.float32).to(self.device)
