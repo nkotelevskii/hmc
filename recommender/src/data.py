@@ -156,7 +156,7 @@ class Dataset():
             if sparse.isspmatrix(X):
                 X = X.toarray()
             X = torch.tensor(X, dtype=torch.float32).to(self.device)
-            print(X.shape)
+            # print(X.shape)
             yield X
 
     def next_val_batch(self):
@@ -169,8 +169,8 @@ class Dataset():
             end_idx = min(st_idx + self.val_batch_size, self.N_vad)
             X = self.vad_data_tr[idxlist_vad[st_idx:end_idx]]
             X_ = self.vad_data_te[idxlist_vad[st_idx:end_idx]]
-            print(X.shape)
-            print(X_.shape)
+            # print(X.shape)
+            # print(X_.shape)
             if sparse.isspmatrix(X):
                 X = X.toarray()
             X = torch.tensor(X, dtype=torch.float32).to(self.device)

@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from tqdm import tqdm
+import pdb
 
 
 def train_model(model, dataset, args):
@@ -48,6 +49,7 @@ def train_model(model, dataset, args):
                 pred_val = pred_val.cpu().detach().numpy()
                 # exclude examples from training and validation (if any)
                 pred_val[X.nonzero()] = -np.inf
+                pdb.set_trace()
                 metric_dist.append(args.metric(pred_val, batch_val[1]))
 
             metric_dist = np.concatenate(metric_dist)
