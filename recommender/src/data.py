@@ -62,7 +62,8 @@ class Dataset():
             self.n_items = len(unique_sid)
             n_items = self.n_items
             if DATA_DIR in ['../data/gowalla', '../data/foursquare']:
-                concatenate_files(DATA_DIR)
+                if not os.path.exists(f"{DATA_DIR}/train.csv"):
+                    concatenate_files(DATA_DIR)
             self.train_data = load_train_data(os.path.join(DATA_DIR, 'train.csv'), n_items)
             self.N = self.train_data.shape[0]
 
