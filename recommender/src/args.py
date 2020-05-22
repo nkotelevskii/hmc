@@ -19,8 +19,6 @@ def get_args(args):
     args.val_batch_size = 2000
     args.n_epoches = 200
 
-    args.learning_rate = 1e-3
-
     args.print_info_ = 1
 
     ## Transition parameters (only for our vae)

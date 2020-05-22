@@ -25,6 +25,10 @@ parser.add_argument('-annealing', type=str, choices=['True', 'False'],
                     help='If we use annealing or not', default='True')
 parser.add_argument('-gpu', type=int, help='If >=0 - id of device, -1 means cpu', default=-1)
 
+parser.add_argument('-lrdec', type=float, help='Learning rate for decoder', default=1e-3)
+parser.add_argument('-lrenc', type=float, help='Learning rate for inference part', default=None)
+
+
 args = parser.parse_args()
 
 
@@ -63,8 +67,8 @@ def main(args):
         metric_values = train_methoffman_model(model, dataset, args)
 
     np.savetxt(
-        "../logs/metrics_{}_{}_K_{}_N_{}_learnreverse_{}_anneal_{}.txt".format(args.data, args.model, args.K, args.N,
-                                                                               args.learnable_reverse, args.annealing),
+        "../logs/metrics_{}_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}.txt".format(args.data, args.model, args.K, args.N,
+                                                                               args.learnable_reverse, args.annealing, args.lrdec, args.lrenc),
         np.array(metric_values))
 
     with open("../logs/log.txt", "a") as myfile:

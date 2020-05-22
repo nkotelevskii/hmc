@@ -11,7 +11,18 @@ def train_model(model, dataset, args):
     print_info_ = args.print_info_
     update_count = 0.0
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.l2_coeff)
+    if args.lrenc is None:
+        lrenc = args.lrdec
+    else:
+        lrenc = args.lrenc
+
+    optimizer = torch.optim.Adam([
+        {'params': model.decoder.parameters(), 'lr': args.lrdec},
+        {'params': model.encoder.parameters()}
+    ],
+        lr=lrenc, weight_decay=args.l2_coeff)
+
+    # optimizer = torch.optim.Adam(model.parameters(), lr=args.lrdec,  weight_decay=args.l2_coeff)
 
     for epoch in tqdm(range(args.n_epoches)):
         model.train()
@@ -49,7 +60,7 @@ def train_model(model, dataset, args):
                 pred_val = pred_val.cpu().detach().numpy()
                 # exclude examples from training and validation (if any)
                 pred_val[X.nonzero()] = -np.inf
-                pdb.set_trace()
+                # pdb.set_trace()
                 metric_dist.append(args.metric(pred_val, batch_val[1]))
 
             metric_dist = np.concatenate(metric_dist)
@@ -59,10 +70,10 @@ def train_model(model, dataset, args):
             # update the best model (if necessary)
             if current_metric > best_metric:
                 torch.save(model,
-                           '../models/best_model_{}_K_{}_N_{}_learnreverse_{}_anneal_{}.pt'.format(args.model, args.K,
+                           '../models/best_model_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}.pt'.format(args.model, args.K,
                                                                                                    args.N,
                                                                                                    args.learnable_reverse,
-                                                                                                   args.annealing))
+                                                                                                   args.annealing, args.lrdec, args.lrenc))
                 best_metric = current_metric
             if epoch % print_info_ == 0:
                 print('Best NDCG:', best_metric)
@@ -75,7 +86,27 @@ def train_met_model(model, dataset, args):
     best_metric = -np.inf
     print_info_ = args.print_info_
     update_count = 0.0
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.l2_coeff)
+
+    if args.lrenc is None:
+        lrenc = args.lrdec
+    else:
+        lrenc = args.lrenc
+
+    if args.learnable_reverse:
+        optimizer = torch.optim.Adam([
+            {'params': model.target.decoder.parameters(), 'lr': args.lrdec},
+            {'params': model.encoder.parameters()},
+            {'params': model.transitions.parameters()},
+            {'params': model.reverse_kernel.parameters()},
+        ],
+            lr=lrenc, weight_decay=args.l2_coeff)
+    else:
+        optimizer = torch.optim.Adam([
+            {'params': model.target.decoder.parameters(), 'lr': args.lrdec},
+            {'params': model.encoder.parameters()},
+            {'params': model.transitions.parameters()},
+        ],
+            lr=lrenc, weight_decay=args.l2_coeff)
 
     for epoch in tqdm(range(args.n_epoches)):
         model.train()
@@ -124,10 +155,10 @@ def train_met_model(model, dataset, args):
         # update the best model (if necessary)
         if current_metric > best_metric:
             torch.save(model,
-                       '../models/best_model_{}_K_{}_N_{}_learnreverse_{}_anneal_{}.pt'.format(args.model, args.K,
+                       '../models/best_model_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}.pt'.format(args.model, args.K,
                                                                                                args.N,
                                                                                                args.learnable_reverse,
-                                                                                               args.annealing))
+                                                                                               args.annealing, args.lrdec, args.lrenc))
             best_metric = current_metric
         if epoch % print_info_ == 0:
             print('Best NDCG:', best_metric)
@@ -140,8 +171,14 @@ def train_hoffman_model(model, dataset, args):
     best_metric = -np.inf
     print_info_ = args.print_info_
     update_count = 0.0
-    optimizer_encoder = torch.optim.Adam(model.encoder.parameters(), lr=args.learning_rate, weight_decay=args.l2_coeff)
-    optimizer_decoder = torch.optim.Adam(model.target.decoder.parameters(), lr=args.learning_rate,
+
+    if args.lrenc is None:
+        lrenc = args.lrdec
+    else:
+        lrenc = args.lrenc
+
+    optimizer_encoder = torch.optim.Adam(model.encoder.parameters(), lr=lrenc, weight_decay=args.l2_coeff)
+    optimizer_decoder = torch.optim.Adam(model.target.decoder.parameters(), lr=args.lrdec,
                                          weight_decay=args.l2_coeff)
 
     for epoch in tqdm(range(args.n_epoches)):
@@ -200,10 +237,10 @@ def train_hoffman_model(model, dataset, args):
         # update the best model (if necessary)
         if current_metric > best_metric:
             torch.save(model,
-                       '../models/best_model_{}_K_{}_N_{}_learnreverse_{}_anneal_{}.pt'.format(args.model, args.K,
+                       '../models/best_model_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}.pt'.format(args.model, args.K,
                                                                                                args.N,
                                                                                                args.learnable_reverse,
-                                                                                               args.annealing))
+                                                                                               args.annealing, args.lrdec, args.lrenc))
             best_metric = current_metric
         if epoch % print_info_ == 0:
             print('Best NDCG:', best_metric)
@@ -216,13 +253,19 @@ def train_methoffman_model(model, dataset, args):
     best_metric = -np.inf
     print_info_ = args.print_info_
     update_count = 0.0
+
+    if args.lrenc is None:
+        lrenc = args.lrdec
+    else:
+        lrenc = args.lrenc
+
     reverse_params = []
     if args.learnable_reverse:
         reverse_params = model.reverse_kernel.parameters()
     optimizer_inference = torch.optim.Adam(
         list(model.encoder.parameters()) + list(model.transitions.parameters()) + list(reverse_params),
-        lr=args.learning_rate, weight_decay=args.l2_coeff)
-    optimizer_decoder = torch.optim.Adam(model.target.decoder.parameters(), lr=args.learning_rate,
+        lr=lrenc, weight_decay=args.l2_coeff)
+    optimizer_decoder = torch.optim.Adam(model.target.decoder.parameters(), lr=args.lrdec,
                                          weight_decay=args.l2_coeff)
 
     for epoch in tqdm(range(args.n_epoches)):
@@ -280,10 +323,10 @@ def train_methoffman_model(model, dataset, args):
         # update the best model (if necessary)
         if current_metric > best_metric:
             torch.save(model,
-                       '../models/best_model_{}_K_{}_N_{}_learnreverse_{}_anneal_{}.pt'.format(args.model, args.K,
+                       '../models/best_model_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}.pt'.format(args.model, args.K,
                                                                                                args.N,
                                                                                                args.learnable_reverse,
-                                                                                               args.annealing))
+                                                                                               args.annealing, args.lrdec, args.lrenc))
             best_metric = current_metric
         if epoch % print_info_ == 0:
             print('Best NDCG:', best_metric)
