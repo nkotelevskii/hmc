@@ -35,14 +35,6 @@ def load_tr_te_data(csv_file_tr, csv_file_te, n_items):
                                  (rows_te, cols_te)), dtype='float64', shape=(end_idx - start_idx + 1, n_items))
     return data_tr, data_te
 
-
-def concatenate_files(DATA_DIR):
-    filenames = [f"{DATA_DIR}/trainaa", f"{DATA_DIR}/trainab"]
-    with open(f"{DATA_DIR}/train.csv", 'w') as outfile:
-        input_lines = fileinput.input(filenames)
-        for line in input_lines:
-            outfile.write(line)
-
 class Dataset():
     def __init__(self, args, data_dir=None):
         self.device = args.device
@@ -61,9 +53,6 @@ class Dataset():
 
             self.n_items = len(unique_sid)
             n_items = self.n_items
-            if DATA_DIR in ['../data/gowalla', '../data/foursquare']:
-                if not os.path.exists(f"{DATA_DIR}/train.csv"):
-                    concatenate_files(DATA_DIR)
             self.train_data = load_train_data(os.path.join(DATA_DIR, 'train.csv'), n_items)
             self.N = self.train_data.shape[0]
 

@@ -13,5 +13,3 @@ recommender/src/*.pt
 recommender/models/*.pt
 pyproject.toml
 poetry.lock
-recommender/data/foursquare/train.csv
-recommender/data/gowalla/train.csv

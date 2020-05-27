@@ -23,7 +23,15 @@ def NDCG_binary_at_k_batch(X_pred, heldout_batch, k=100):
                          idx_topk].toarray() * tp).sum(axis=1)
     IDCG = np.array([(tp[:min(n, k)]).sum()
                      for n in heldout_batch.getnnz(axis=1)])
-    return DCG / IDCG
+    # import pdb; pdb.set_trace()   for debuging purpose
+
+    # if there are users without any items, there will be zeros in the IDCG, and "nan" in the NDCG
+    # so we simply remove the "nan" a posteriori. This is equivalent to remove some users from the validation set
+    # This is fair since this will be applied systematically for a given dataset. So all models will be evaluated
+    # on the same dataset.
+    a = DCG / IDCG
+    a = a[~np.isnan(a)]
+    return a
 
 
 def Recall_at_k_batch(X_pred, heldout_batch, k=100):
