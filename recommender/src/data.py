@@ -53,7 +53,7 @@ class Dataset():
             DATA_DIR = data_dir + str(self.data)
         else:
             DATA_DIR = '../data/{}'.format(self.data)
-        if args.data in {'foursquare', 'gowalla', 'ml25m','ml20m', 'ml100k'}:
+        if args.data in {'foursquare', 'gowalla', 'ml25m', 'ml20m', 'ml100k'}:
             unique_sid = list()
             with open(os.path.join(DATA_DIR, 'unique_sid.txt'), 'r') as f:
                 for line in f:

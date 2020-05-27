@@ -23,10 +23,24 @@ parser.add_argument('-learnable_reverse', type=str, choices=['True', 'False'],
                     help='If we use learnable reverse or not', default='False')
 parser.add_argument('-annealing', type=str, choices=['True', 'False'],
                     help='If we use annealing or not', default='True')
+parser.add_argument('-learntransitions', type=str, choices=['True', 'False'],
+                    help='If we train transitions or not', default='True')
+
 parser.add_argument('-gpu', type=int, help='If >=0 - id of device, -1 means cpu', default=-1)
 
 parser.add_argument('-lrdec', type=float, help='Learning rate for decoder', default=1e-3)
 parser.add_argument('-lrenc', type=float, help='Learning rate for inference part', default=None)
+
+parser.add_argument('-n_epoches', type=int, help='Number of epoches', default=200)
+parser.add_argument('-train_batch_size', type=int, help='Batch size', default=500)
+parser.add_argument('-n_val_samples', type=int, help='How many samples to use on evaluation', default=1)
+
+parser.add_argument('-anneal_cap', type=float, help='Maximal annealing coeff', default=1.)
+
+
+parser.add_argument('-num_flows', type=int, help='How many NAF to use', default=1)
+
+
 
 
 args = parser.parse_args()
@@ -67,8 +81,8 @@ def main(args):
         metric_values = train_methoffman_model(model, dataset, args)
 
     np.savetxt(
-        "../logs/metrics_{}_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}.txt".format(args.data, args.model, args.K, args.N,
-                                                                               args.learnable_reverse, args.annealing, args.lrdec, args.lrenc),
+        "../logs/metrics_{}_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}_learntransitions_{}_initstepsize_{}.txt".format(args.data, args.model, args.K, args.N,
+                                                                               args.learnable_reverse, args.annealing, args.lrdec, args.lrenc, args.learntransitions, args.gamma),
         np.array(metric_values))
 
     with open("../logs/log.txt", "a") as myfile:

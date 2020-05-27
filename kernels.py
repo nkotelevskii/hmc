@@ -10,7 +10,7 @@ class HMC_our(nn.Module):
 #         self.gamma_logit = nn.Parameter(torch.tensor(np.log(kwargs.gamma) - np.log(1. - kwargs.gamma), device=self.device))
         self.gamma = nn.Parameter(torch.tensor(np.log(kwargs.gamma), device=self.device))
         self.N = kwargs.N # num leapfrogs
-        self.alpha_logit = nn.Parameter(torch.tensor(np.log(kwargs.alpha) - np.log(1. - kwargs.alpha), device=self.device))
+        self.alpha_logit = nn.Parameter(torch.tensor(np.log(kwargs.alpha) - np.log(1. - kwargs.alpha), device=self.device), requires_grad=True)
         self.use_barker = kwargs.use_barker  # If false, we are using standard MH ration, otherwise Barker ratio
         self.device_zero = torch.tensor(0., dtype=kwargs.torchType, device=self.device)
         self.device_one = torch.tensor(1., dtype=kwargs.torchType, device=self.device)
@@ -100,8 +100,10 @@ class HMC_our(nn.Module):
         ############ Then we compute new points and densities ############
         q_upd, p_upd = self._forward_step(q_old=q_old, p_old=p_ref, k=k, target=target_distr, x=x)
 
-        target_log_density_f = target_distr.get_logdensity(z=q_upd, x=x, prior=get_prior, args=args, prior_flow=prior_flow) + self.std_normal.log_prob(p_upd).sum(1)
-        target_log_density_old = target_distr.get_logdensity(z=q_old, x=x, prior=get_prior, args=args, prior_flow=prior_flow) + self.std_normal.log_prob(p_ref).sum(1)
+        target_log_density_f = target_distr.get_logdensity(z=q_upd, x=x, prior=get_prior, args=args,
+                                                           prior_flow=prior_flow) + self.std_normal.log_prob(p_upd).sum(1)
+        target_log_density_old = target_distr.get_logdensity(z=q_old, x=x, prior=get_prior, args=args,
+                                                             prior_flow=prior_flow) + self.std_normal.log_prob(p_ref).sum(1)
 
         log_t = target_log_density_f - target_log_density_old
         log_1_t = torch.logsumexp(torch.cat([torch.zeros_like(log_t).view(-1, 1),
@@ -286,30 +288,6 @@ class HMC_vanilla(nn.Module):
 
 
 
-# class Reverse_kernel(nn.Module):
-#     def __init__(self, kwargs):
-#         super(Reverse_kernel, self).__init__()
-#         self.device = kwargs.device
-#         self.device_one = torch.tensor(1., dtype=kwargs.torchType, device=self.device)
-#         self.z_dim = kwargs.z_dim
-#         self.K = kwargs.K
-#         #self.linear_a = nn.Linear(in_features=self.K, out_features=2*self.K)
-#         self.linear_z = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
-#         self.linear_mu = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
-#         self.linear_hidden = nn.Linear(in_features=10*self.K, out_features=5*self.K)
-#         self.linear_out = nn.Linear(in_features=5*self.K, out_features=self.K)
-
-#     def forward(self, z_fin, mu, a):
-#         z_ = torch.relu(self.linear_z(z_fin))
-#         mu_ = torch.relu(self.linear_mu(mu))
-#         #a_ = torch.relu(self.linear_a(a))
-#         #cat_z_mu_a = torch.cat([z_, mu_, a_], dim=1)
-#         cat_z_mu = torch.cat([z_, mu_], dim=1)
-#         h1 = torch.relu(self.linear_hidden(cat_z_mu))
-#         probs = torch.sigmoid(self.linear_out(h1))
-#         probs = torch.where(a == self.device_one, probs, self.device_one-probs)
-#         log_prob = torch.sum(torch.log(probs), dim=1)
-#         return log_prob
 class Reverse_kernel(nn.Module):
     def __init__(self, kwargs):
         super(Reverse_kernel, self).__init__()
@@ -319,22 +297,21 @@ class Reverse_kernel(nn.Module):
         self.K = kwargs.K
         #self.linear_a = nn.Linear(in_features=self.K, out_features=2*self.K)
         self.linear_z = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
-        self.linear_h = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
+        self.linear_mu = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
         self.linear_hidden = nn.Linear(in_features=10*self.K, out_features=5*self.K)
         self.linear_out = nn.Linear(in_features=5*self.K, out_features=self.K)
 
-    def forward(self, z_fin, h, a):
+    def forward(self, z_fin, mu, a):
         z_ = torch.relu(self.linear_z(z_fin))
-        h_ = torch.relu(self.linear_h(h))
+        mu_ = torch.relu(self.linear_mu(mu))
         #a_ = torch.relu(self.linear_a(a))
         #cat_z_mu_a = torch.cat([z_, mu_, a_], dim=1)
-        cat_z_h = torch.cat([z_, h_], dim=1)
-        h1 = torch.relu(self.linear_hidden(cat_z_h))
+        cat_z_mu = torch.cat([z_, mu_], dim=1)
+        h1 = torch.relu(self.linear_hidden(cat_z_mu))
         probs = torch.sigmoid(self.linear_out(h1))
         probs = torch.where(a == self.device_one, probs, self.device_one-probs)
         log_prob = torch.sum(torch.log(probs), dim=1)
         return log_prob
-
 
 class Reverse_kernel_sampling(nn.Module):
     def __init__(self, kwargs):
@@ -356,27 +333,3 @@ class Reverse_kernel_sampling(nn.Module):
         log_prob = torch.sum(torch.log(probs), dim=1)
         return log_prob
 
-class Accept_func(nn.Module):
-    def __init__(self, kwargs):
-        super(Accept_func, self).__init__()
-        self.device = kwargs.device
-        self.device_one = torch.tensor(1., dtype=kwargs.torchType, device=self.device)
-        self.z_dim = kwargs.z_dim
-        self.K = kwargs.K
-        self.linear_q_old = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
-        self.linear_q_new = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
-        self.linear_h = nn.Linear(in_features=self.z_dim, out_features=5*self.K)
-        self.linear_hidden = nn.Linear(in_features=15*self.K, out_features=10*self.K)
-        self.linear_out = nn.Linear(in_features=10*self.K, out_features=1)
-
-    def forward(self, q_new, q_old, h):
-        q_old_ = torch.relu(self.linear_q_old(q_old))
-        q_new_ = torch.relu(self.linear_q_new(q_new))
-        h_ = torch.relu(self.linear_h(h))
-        #a_ = torch.relu(self.linear_a(a))
-        #cat_z_mu_a = torch.cat([z_, mu_, a_], dim=1)
-        cat_all = torch.cat([q_old_, q_new_, h_], dim=1)
-        h1 = torch.relu(self.linear_hidden(cat_all))
-        probs = nn.functional.softplus(self.linear_out(h1))
-        log_prob = torch.log(probs)
-        return log_prob
