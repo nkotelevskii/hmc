@@ -1,5 +1,5 @@
 import torch
-from metrics import NDCG_binary_at_k_batch
+from metrics import NDCG_binary_at_k_batch, Recall_at_k_batch
 
 
 def get_args(args):
