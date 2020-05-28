@@ -164,7 +164,8 @@ class Multi_our_VAE(nn.Module):
     def forward(self, x_initial, is_training_ph=1.):
         l2 = torch.sum(x_initial ** 2, 1)[..., None]
         x_normed = x_initial / torch.sqrt(torch.max(l2, torch.ones_like(l2) * 1e-12))
-        x = self.dropout(x_normed)
+        # x = self.dropout(x_normed)
+        x = x_normed
 
         enc_out = self.encoder(x)
         mu, logvar = enc_out[:, :self.q_dims[-1]], enc_out[:, self.q_dims[-1]:]
@@ -179,21 +180,17 @@ class Multi_our_VAE(nn.Module):
         p_old = self.std_normal.sample(z.shape)
         p_ = p_old.detach()
 
-        if self.learnable_reverse:
-            all_directions = torch.tensor([], device=x.device)
-        else:
-            all_directions = None
+        all_directions = torch.tensor([], device=x.device)
 
         for i in range(self.K):
             cond_vector = self.std_normal.sample(p_.shape)
-            z, p_, log_jac, current_log_alphas, directions, _ = self.transitions[i].make_transition(q_old=z, x=x_normed,
+            z, p_, log_jac, current_log_alphas, directions, _ = self.transitions[i].make_transition(q_old=z, x=x,
                                                                                                     p_old=p_,
                                                                                                     k=cond_vector,
                                                                                                     target_distr=self.target)
             sum_log_alpha = sum_log_alpha + current_log_alphas
             sum_log_jacobian = sum_log_jacobian + log_jac
-            if self.learnable_reverse:
-                all_directions = torch.cat([all_directions, directions.view(-1, 1)], dim=1)
+            all_directions = torch.cat([all_directions, directions.view(-1, 1)], dim=1)
 
         ## logdensity of Variational family
         log_q = self.std_normal.log_prob(u).sum(1) + self.std_normal.log_prob(p_old).sum(

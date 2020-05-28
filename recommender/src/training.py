@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from tqdm import tqdm
+from torch.optim.lr_scheduler import MultiStepLR
 import pdb
 
 def train_model(model, dataset, args):
@@ -119,7 +120,7 @@ def train_met_model(model, dataset, args):
             {'params': model.transitions.parameters()},
         ],
             lr=lrenc, weight_decay=args.l2_coeff)
-
+    scheduler = MultiStepLR(optimizer, np.arange(1, args.n_epoches, 10), gamma=0.9)
     for epoch in tqdm(range(args.n_epoches)):
         model.train()
         for bnum, batch_train in enumerate(dataset.next_train_batch()):
@@ -155,6 +156,12 @@ def train_met_model(model, dataset, args):
             update_count += 1
         if np.isnan(elbo_full.cpu().detach().mean().numpy()):
             break
+
+        scheduler.step()
+        if epoch % print_info_ == 0:
+            for param_group in optimizer.param_groups:
+                print(param_group['lr'])
+
         # compute validation NDCG
         model.eval()
         metric_dist = []

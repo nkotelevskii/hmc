@@ -28,7 +28,7 @@ def get_args(args):
         args.gamma = 0.1
         # args.alpha = 0.5
     else:
-        args.gamma = 0.1  # Stepsize
+        args.gamma = 0.01  # Stepsize
     args.alpha = 0.9  #0.5  # For partial momentum refresh
     args.use_barker = True
     args.use_partialref = True

@@ -8,6 +8,7 @@ from training import train_model, train_met_model, train_hoffman_model, train_me
 
 from args import get_args
 from data import Dataset
+import pdb
 
 parser = argparse.ArgumentParser(
     description='VAE for CF')
@@ -62,7 +63,7 @@ def main(args):
     layers = [200, 600, dataset.n_items]
     args.z_dim = layers[0]
     args.l2_coeff = 0.
-
+    # with torch.autograd.detect_anomaly():
     if args.model == 'MultiVAE':
         model = MultiVAE(layers, args=args).to(args.device)
         metric_values = train_model(model, dataset, args)
