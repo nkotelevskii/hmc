@@ -160,17 +160,19 @@ class Multi_our_VAE(nn.Module):
         device_one = torch.tensor(1., dtype=torch.float32, device=args.device)
         self.std_normal = torch.distributions.Normal(loc=device_zero, scale=device_one)
         self.torch_log_2 = torch.tensor(np.log(2), device=args.device, dtype=args.torchType)
+        self.annealing = args.annealings
 
     def forward(self, x_initial, is_training_ph=1.):
         l2 = torch.sum(x_initial ** 2, 1)[..., None]
         x_normed = x_initial / torch.sqrt(torch.max(l2, torch.ones_like(l2) * 1e-12))
-        # x = self.dropout(x_normed)
-        x = x_normed
+        if self.annealing:
+            x = self.dropout(x_normed)
+        else:
+            x = x_normed
 
         enc_out = self.encoder(x)
         mu, logvar = enc_out[:, :self.q_dims[-1]], enc_out[:, self.q_dims[-1]:]
         std = torch.exp(0.5 * logvar)
-        sum_log_sigma = torch.log(std).sum(1)
         sum_log_alpha = torch.zeros_like(mu[:, 0])
         sum_log_jacobian = torch.zeros_like(mu[:, 0])
 
@@ -193,11 +195,12 @@ class Multi_our_VAE(nn.Module):
             all_directions = torch.cat([all_directions, directions.view(-1, 1)], dim=1)
 
         ## logdensity of Variational family
-        log_q = self.std_normal.log_prob(u).sum(1) + self.std_normal.log_prob(p_old).sum(
-            1) - sum_log_jacobian - sum_log_sigma + sum_log_alpha
+        log_sigma = torch.log(std)
+        log_q = self.std_normal.log_prob(u) + self.std_normal.log_prob(p_old) - log_sigma
+        log_aux = sum_log_alpha - sum_log_jacobian
 
         ## logdensity of prior
-        log_priors = self.std_normal.log_prob(z).sum(1) + self.std_normal.log_prob(p_).sum(1)
+        log_priors = self.std_normal.log_prob(z) + self.std_normal.log_prob(p_)
 
         ## logits
         logits = self.target.decoder(z)
@@ -208,7 +211,7 @@ class Multi_our_VAE(nn.Module):
         else:
             log_r = -self.K * self.torch_log_2
 
-        return logits, log_q, log_priors, log_r, sum_log_alpha, all_directions
+        return logits, log_q, log_aux, log_priors, log_r, sum_log_alpha, all_directions
 
 
 class MultiHoffmanVAE(nn.Module):

@@ -60,6 +60,7 @@ def main(args):
     set_seeds(322)
     args = get_args(args)
     dataset = Dataset(args)
+    # pdb.set_trace()
     layers = [200, 600, dataset.n_items]
     args.z_dim = layers[0]
     args.l2_coeff = 0.

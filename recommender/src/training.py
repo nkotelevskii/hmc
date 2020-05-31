@@ -120,7 +120,7 @@ def train_met_model(model, dataset, args):
             {'params': model.transitions.parameters()},
         ],
             lr=lrenc, weight_decay=args.l2_coeff)
-    scheduler = MultiStepLR(optimizer, np.arange(1, args.n_epoches, 10), gamma=0.9)
+    scheduler = MultiStepLR(optimizer, np.arange(10, args.n_epoches, 20), gamma=0.75)
     for epoch in tqdm(range(args.n_epoches)):
         model.train()
         for bnum, batch_train in enumerate(dataset.next_train_batch()):
@@ -130,15 +130,17 @@ def train_met_model(model, dataset, args):
             else:
                 anneal = args.anneal_cap
 
-            logits, log_q, log_priors, log_r, sum_log_alpha, directions = model(batch_train)
+            logits, log_q, log_aux, log_priors, log_r, sum_log_alpha, directions = model(batch_train)
 
             # loglikelihood part
             log_softmax_var = nn.LogSoftmax(dim=-1)(logits)
-            log_p = torch.mean(torch.sum(log_softmax_var * batch_train, dim=1))
-
+            log_p = torch.sum(log_softmax_var * batch_train, 1)
+            log_joint = log_p.mean() + log_priors.mean()
             # compute objective
-            elbo_full = log_p + (log_priors + log_r - log_q) * anneal
-            grad_elbo = torch.mean(elbo_full + elbo_full.detach() * sum_log_alpha)
+            KLD = log_q.mean() + log_aux.mean() - log_r.mean()
+            elbo_full = log_joint - anneal * KLD
+
+            grad_elbo = elbo_full + elbo_full.detach() * torch.mean(sum_log_alpha)
             (-grad_elbo).backward()
 
             optimizer.step()
@@ -157,7 +159,8 @@ def train_met_model(model, dataset, args):
         if np.isnan(elbo_full.cpu().detach().mean().numpy()):
             break
 
-        scheduler.step()
+        if (args.data in ['ml20m']) and not args.annealing:
+            scheduler.step()
         if epoch % print_info_ == 0:
             for param_group in optimizer.param_groups:
                 print(param_group['lr'])
@@ -168,7 +171,7 @@ def train_met_model(model, dataset, args):
         for bnum, batch_val in enumerate(dataset.next_val_batch()):
             reshaped_batch = batch_val[0].repeat((args.n_val_samples, 1))
             is_training_ph = int(args.n_val_samples > 1)
-            pred_val, _, _, _, _, _ = model(reshaped_batch, is_training_ph=is_training_ph)
+            pred_val, _, _, _, _, _, _ = model(reshaped_batch, is_training_ph=is_training_ph)
             pred_val = pred_val.view((args.n_val_samples, *batch_val[0].shape)).mean(0)
             X = batch_val[0].cpu().detach().numpy()
             pred_val = pred_val.cpu().detach().numpy()
@@ -321,7 +324,7 @@ def train_methoffman_model(model, dataset, args):
 
             # loglikelihood part
             log_softmax_var = nn.LogSoftmax(dim=-1)(logits_pre)
-            log_p = torch.mean(torch.sum(log_softmax_var * batch_train, dim=1))
+            log_p = torch.sum(log_softmax_var * batch_train, dim=1)
 
             # compute the first objective
             elbo_full = log_p + (log_priors + log_r - log_q) * anneal
