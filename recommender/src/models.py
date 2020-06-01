@@ -160,15 +160,16 @@ class Multi_our_VAE(nn.Module):
         device_one = torch.tensor(1., dtype=torch.float32, device=args.device)
         self.std_normal = torch.distributions.Normal(loc=device_zero, scale=device_one)
         self.torch_log_2 = torch.tensor(np.log(2), device=args.device, dtype=args.torchType)
-        self.annealing = args.annealings
+        self.annealing = args.annealing
 
     def forward(self, x_initial, is_training_ph=1.):
         l2 = torch.sum(x_initial ** 2, 1)[..., None]
         x_normed = x_initial / torch.sqrt(torch.max(l2, torch.ones_like(l2) * 1e-12))
-        if self.annealing:
-            x = self.dropout(x_normed)
-        else:
-            x = x_normed
+        # if self.annealing:
+        #     x = self.dropout(x_normed)
+        # else:
+        #     x = x_normed
+        x = self.dropout(x_normed)
 
         enc_out = self.encoder(x)
         mu, logvar = enc_out[:, :self.q_dims[-1]], enc_out[:, self.q_dims[-1]:]

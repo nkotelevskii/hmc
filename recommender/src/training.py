@@ -120,7 +120,7 @@ def train_met_model(model, dataset, args):
             {'params': model.transitions.parameters()},
         ],
             lr=lrenc, weight_decay=args.l2_coeff)
-    scheduler = MultiStepLR(optimizer, np.arange(10, args.n_epoches, 20), gamma=0.75)
+    scheduler = MultiStepLR(optimizer, [20, 40, 100], gamma=0.2)
     for epoch in tqdm(range(args.n_epoches)):
         model.train()
         for bnum, batch_train in enumerate(dataset.next_train_batch()):
@@ -130,6 +130,7 @@ def train_met_model(model, dataset, args):
             else:
                 anneal = args.anneal_cap
 
+            # pdb.set_trace()
             logits, log_q, log_aux, log_priors, log_r, sum_log_alpha, directions = model(batch_train)
 
             # loglikelihood part
@@ -161,6 +162,10 @@ def train_met_model(model, dataset, args):
 
         if (args.data in ['ml20m']) and not args.annealing:
             scheduler.step()
+            # if epoch in [20, 30, 50, 100]:
+            #     for pr_gr, g in enumerate(optimizer.param_groups):
+            #         if pr_gr == 1:
+            #             g['lr'] *= 2.5
         if epoch % print_info_ == 0:
             for param_group in optimizer.param_groups:
                 print(param_group['lr'])

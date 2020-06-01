@@ -1,2 +1,4 @@
+python3 main.py -data ml20m -model Multi_our_VAE -K 2 -N 1 -gpu 0 -lrdec 1e-3 -lrenc 1e-3 -learnable_reverse False -n_val_samples 30 -learntransitions False -annealing False -train_batch_size 500 -n_epoches 300
 python3 main.py -data ml20m -model Multi_our_VAE -K 1 -N 2 -gpu 0 -lrdec 1e-3 -lrenc 1e-3 -learnable_reverse False -n_val_samples 30 -learntransitions False -annealing False -train_batch_size 500 -n_epoches 300
 python3 main.py -data ml20m -model Multi_our_VAE -K 1 -N 3 -gpu 0 -lrdec 1e-3 -lrenc 1e-3 -learnable_reverse False -n_val_samples 30 -learntransitions False -annealing False -train_batch_size 500 -n_epoches 300
+python3 main.py -data ml20m -model Multi_our_VAE -K 2 -N 2 -gpu 0 -lrdec 1e-3 -lrenc 1e-3 -learnable_reverse False -n_val_samples 30 -learntransitions False -annealing False -train_batch_size 500 -n_epoches 300
