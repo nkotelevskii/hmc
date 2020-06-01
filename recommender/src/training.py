@@ -135,11 +135,10 @@ def train_met_model(model, dataset, args):
 
             # loglikelihood part
             log_softmax_var = nn.LogSoftmax(dim=-1)(logits)
-            log_p = torch.sum(log_softmax_var * batch_train, 1)
-            log_joint = log_p.mean() + log_priors.mean()
+            log_likelihood = torch.sum(log_softmax_var * batch_train, 1).mean()
             # compute objective
-            KLD = log_q.mean() + log_aux.mean() - log_r.mean()
-            elbo_full = log_joint - anneal * KLD
+            KLD = log_q.mean() + log_aux.mean() - log_r.mean() - log_priors.mean()
+            elbo_full = log_likelihood - anneal * KLD
 
             grad_elbo = elbo_full + elbo_full.detach() * torch.mean(sum_log_alpha)
             (-grad_elbo).backward()
