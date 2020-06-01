@@ -38,7 +38,8 @@ def get_args(args):
         args.anneal_cap = 1.
 
     ## Metric
-    args.metric = NDCG_binary_at_k_batch
+#     args.metric = NDCG_binary_at_k_batch
+    args.metric = Recall_at_k_batch
 
     if args.model == 'MultiDAE':
         args.l2_coeff = 0.01 / args.train_batch_size

@@ -34,7 +34,7 @@ def NDCG_binary_at_k_batch(X_pred, heldout_batch, k=100):
     return a
 
 
-def Recall_at_k_batch(X_pred, heldout_batch, k=100):
+def Recall_at_k_batch(X_pred, heldout_batch, k=5):
     batch_users = X_pred.shape[0]
 
     idx = bn.argpartition(-X_pred, k, axis=1)
@@ -45,4 +45,5 @@ def Recall_at_k_batch(X_pred, heldout_batch, k=100):
     tmp = (np.logical_and(X_true_binary, X_pred_binary).sum(axis=1)).astype(
         np.float32)
     recall = tmp / np.minimum(k, X_true_binary.sum(axis=1))
+    recall = recall[~np.isnan(recall)]
     return recall
