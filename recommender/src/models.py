@@ -120,6 +120,7 @@ class Target(nn.Module):
         logits = self.decoder(z)
         log_softmax_var = nn.LogSoftmax(dim=-1)(logits)
         log_density = torch.sum(log_softmax_var * x, dim=1) + self.prior.log_prob(z).sum(1)
+        # log_density = torch.mean(torch.sum(log_softmax_var * x, dim=1))
         return log_density
 
 

@@ -25,7 +25,7 @@ def get_args(args):
 
     ## Transition parameters (only for our vae)
     if args.learntransitions:
-        args.gamma = 0.1
+        args.gamma = 0.01
         # args.alpha = 0.5
     else:
         args.gamma = 0.01  # Stepsize

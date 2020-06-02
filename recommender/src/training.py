@@ -51,6 +51,7 @@ def train_model(model, dataset, args):
                 print(neg_ELBO.cpu().detach().numpy())
 
             update_count += 1
+
         # compute validation NDCG
         model.eval()
         with torch.no_grad():
@@ -120,13 +121,18 @@ def train_met_model(model, dataset, args):
             {'params': model.transitions.parameters()},
         ],
             lr=lrenc, weight_decay=args.l2_coeff)
-    scheduler = MultiStepLR(optimizer, [20, 40, 100], gamma=0.2)
+    if args.data == 'ml20m':
+        scheduler = MultiStepLR(optimizer, [10, 40, 60, 100], gamma=0.2)
+        # scheduler = MultiStepLR(optimizer, [20, 40, 100], gamma=0.2)
+    else:
+        scheduler = MultiStepLR(optimizer, [20, 60, 100, 150], gamma=0.2)
+
     for epoch in tqdm(range(args.n_epoches)):
         model.train()
         for bnum, batch_train in enumerate(dataset.next_train_batch()):
 
             if args.total_anneal_steps > 0:
-                anneal = min(args.anneal_cap, 1. * update_count / args.total_anneal_steps)
+                anneal = min(args.anneal_cap, args.anneal_cap * update_count / args.total_anneal_steps) ## !!!!!!!
             else:
                 anneal = args.anneal_cap
 
@@ -140,6 +146,13 @@ def train_met_model(model, dataset, args):
             KLD = log_q.mean() + log_aux.mean() - log_r.mean() - log_priors.mean()
             elbo_full = log_likelihood - anneal * KLD
 
+            ## ALARM ##
+            # pdb.set_trace()
+            # log_likelihood = torch.sum(log_softmax_var * batch_train, 1)
+            # KLD = log_q + log_aux[:, None] - log_r - log_priors
+            # elbo_full = torch.mean(log_likelihood[:, None] - anneal * KLD)
+            ## ALARM ##
+
             grad_elbo = elbo_full + elbo_full.detach() * torch.mean(sum_log_alpha)
             (-grad_elbo).backward()
 
@@ -147,6 +160,7 @@ def train_met_model(model, dataset, args):
             optimizer.zero_grad()
 
             if (bnum % 200 == 0) and (epoch % print_info_ == 0):
+                print('Current anneal coeff:', anneal)
                 print(elbo_full.cpu().detach().mean().numpy())
                 for k in range(args.K):
                     print('k =', k)
@@ -159,7 +173,7 @@ def train_met_model(model, dataset, args):
         if np.isnan(elbo_full.cpu().detach().mean().numpy()):
             break
 
-        if (args.data in ['ml20m']) and not args.annealing:
+        if (args.data in ['ml20m', 'gowalla', 'foursquare']): # and not args.annealing:
             scheduler.step()
             # if epoch in [20, 30, 50, 100]:
             #     for pr_gr, g in enumerate(optimizer.param_groups):

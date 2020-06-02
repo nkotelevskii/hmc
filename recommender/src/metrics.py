@@ -45,4 +45,5 @@ def Recall_at_k_batch(X_pred, heldout_batch, k=100):
     tmp = (np.logical_and(X_true_binary, X_pred_binary).sum(axis=1)).astype(
         np.float32)
     recall = tmp / np.minimum(k, X_true_binary.sum(axis=1))
+    recall = recall[~np.isnan(recall)]
     return recall
