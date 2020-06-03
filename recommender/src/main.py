@@ -27,6 +27,9 @@ parser.add_argument('-annealing', type=str, choices=['True', 'False'],
 parser.add_argument('-learntransitions', type=str, choices=['True', 'False'],
                     help='If we train transitions or not', default='True')
 
+parser.add_argument('-learnscale', type=str, choices=['True', 'False'],
+                    help='If we train diagonal matrix for momentum rescale or not', default='False')
+
 parser.add_argument('-gpu', type=int, help='If >=0 - id of device, -1 means cpu', default=-1)
 
 parser.add_argument('-lrdec', type=float, help='Learning rate for decoder', default=1e-3)
@@ -83,8 +86,8 @@ def main(args):
         metric_values = train_methoffman_model(model, dataset, args)
 
     np.savetxt(
-        "../logs/metrics_{}_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}_learntransitions_{}_initstepsize_{}.txt".format(args.data, args.model, args.K, args.N,
-                                                                               args.learnable_reverse, args.annealing, args.lrdec, args.lrenc, args.learntransitions, args.gamma),
+        "../logs/metrics_{}_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}_learntransitions_{}_initstepsize_{}_learnscale_{}.txt".format(args.data, args.model, args.K, args.N,
+                                                                               args.learnable_reverse, args.annealing, args.lrdec, args.lrenc, args.learntransitions, args.gamma, args.learnscale),
         np.array(metric_values))
 
     with open("../logs/log.txt", "a") as myfile:

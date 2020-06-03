@@ -22,6 +22,7 @@ def get_args(args):
     args.annealing = True if args.annealing == 'True' else False
     args.learnable_reverse = True if args.learnable_reverse == 'True' else False
     args.learntransitions = True if args.learntransitions == 'True' else False
+    args.learnscale = True if args.learnscale == 'True' else False
 
     ## Transition parameters (only for our vae)
     if args.learntransitions:
@@ -35,7 +36,12 @@ def get_args(args):
 
 
     if args.annealing:
-        args.total_anneal_steps = 46000
+        if args.data == 'ml20m':
+            args.total_anneal_steps = 46000
+        elif args.data == 'gowalla':
+            args.total_anneal_steps = 27200 * 1.5
+        elif args.data == 'foursquare':
+            args.total_anneal_steps = 31400 * 1.5
     else:
         args.total_anneal_steps = 0
         args.anneal_cap = 1.

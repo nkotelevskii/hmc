@@ -112,6 +112,7 @@ def train_met_model(model, dataset, args):
             {'params': model.encoder.parameters()},
             {'params': model.transitions.parameters()},
             {'params': model.reverse_kernel.parameters()},
+            {'params': model.momentum_scale},
         ],
             lr=lrenc, weight_decay=args.l2_coeff)
     else:
@@ -119,20 +120,23 @@ def train_met_model(model, dataset, args):
             {'params': model.target.decoder.parameters(), 'lr': args.lrdec},
             {'params': model.encoder.parameters()},
             {'params': model.transitions.parameters()},
+            {'params': model.momentum_scale},
         ],
             lr=lrenc, weight_decay=args.l2_coeff)
     if args.data == 'ml20m':
         scheduler = MultiStepLR(optimizer, [10, 40, 60, 100], gamma=0.2)
         # scheduler = MultiStepLR(optimizer, [20, 40, 100], gamma=0.2)
+    elif args.data == 'gowalla':
+        scheduler = MultiStepLR(optimizer, [20, 50, 75, 100, 150], gamma=0.75)
     else:
-        scheduler = MultiStepLR(optimizer, [20, 60, 100, 150], gamma=0.2)
+        scheduler = MultiStepLR(optimizer, [20, 50, 100, 150], gamma=0.25)
 
     for epoch in tqdm(range(args.n_epoches)):
         model.train()
         for bnum, batch_train in enumerate(dataset.next_train_batch()):
 
             if args.total_anneal_steps > 0:
-                anneal = min(args.anneal_cap, args.anneal_cap * update_count / args.total_anneal_steps) ## !!!!!!!
+                anneal = min(args.anneal_cap, 1. * update_count / args.total_anneal_steps)
             else:
                 anneal = args.anneal_cap
 
@@ -146,13 +150,6 @@ def train_met_model(model, dataset, args):
             KLD = log_q.mean() + log_aux.mean() - log_r.mean() - log_priors.mean()
             elbo_full = log_likelihood - anneal * KLD
 
-            ## ALARM ##
-            # pdb.set_trace()
-            # log_likelihood = torch.sum(log_softmax_var * batch_train, 1)
-            # KLD = log_q + log_aux[:, None] - log_r - log_priors
-            # elbo_full = torch.mean(log_likelihood[:, None] - anneal * KLD)
-            ## ALARM ##
-
             grad_elbo = elbo_full + elbo_full.detach() * torch.mean(sum_log_alpha)
             (-grad_elbo).backward()
 
@@ -161,6 +158,8 @@ def train_met_model(model, dataset, args):
 
             if (bnum % 200 == 0) and (epoch % print_info_ == 0):
                 print('Current anneal coeff:', anneal)
+                if args.learnscale:
+                    print('Min scale', torch.exp(model.momentum_scale.detach()).min().item(), 'Max scale', torch.exp(model.momentum_scale.detach()).max().item())
                 print(elbo_full.cpu().detach().mean().numpy())
                 for k in range(args.K):
                     print('k =', k)
@@ -204,11 +203,11 @@ def train_met_model(model, dataset, args):
         # update the best model (if necessary)
         if current_metric > best_metric:
             torch.save(model,
-                       '../models/best_model_{}_data_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}_learntransitions_{}_initstepsize_{}.pt'.format(
+                       '../models/best_model_{}_data_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}_learntransitions_{}_initstepsize_{}_learnscale_{}.pt'.format(
                            args.model, args.data, args.K,
                            args.N,
                            args.learnable_reverse,
-                           args.annealing, args.lrdec, args.lrenc, args.learntransitions, args.gamma))
+                           args.annealing, args.lrdec, args.lrenc, args.learntransitions, args.gamma, args.learnscale))
             best_metric = current_metric
         if epoch % print_info_ == 0:
             print('Best NDCG:', best_metric)

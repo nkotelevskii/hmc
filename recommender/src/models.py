@@ -162,6 +162,8 @@ class Multi_our_VAE(nn.Module):
         self.std_normal = torch.distributions.Normal(loc=device_zero, scale=device_one)
         self.torch_log_2 = torch.tensor(np.log(2), device=args.device, dtype=args.torchType)
         self.annealing = args.annealing
+        self.momentum_scale = nn.Parameter(torch.zeros(args.z_dim, device=args.device, dtype=args.torchType)[None, :],
+                                           requires_grad=args.learnscale)
 
     def forward(self, x_initial, is_training_ph=1.):
         l2 = torch.sum(x_initial ** 2, 1)[..., None]
@@ -181,13 +183,15 @@ class Multi_our_VAE(nn.Module):
         u = self.std_normal.sample(mu.shape)
         z = mu + is_training_ph * u * std
 
-        p_old = self.std_normal.sample(z.shape)
-        p_ = p_old.detach()
+        # pdb.set_trace()
+
+        p_ = self.std_normal.sample(z.shape) * torch.exp(self.momentum_scale)
+        p_old = p_.clone()
 
         all_directions = torch.tensor([], device=x.device)
 
         for i in range(self.K):
-            cond_vector = self.std_normal.sample(p_.shape)
+            cond_vector = self.std_normal.sample(p_.shape) * torch.exp(self.momentum_scale)
             z, p_, log_jac, current_log_alphas, directions, _ = self.transitions[i].make_transition(q_old=z, x=x,
                                                                                                     p_old=p_,
                                                                                                     k=cond_vector,
@@ -198,11 +202,11 @@ class Multi_our_VAE(nn.Module):
 
         ## logdensity of Variational family
         log_sigma = torch.log(std)
-        log_q = self.std_normal.log_prob(u) + self.std_normal.log_prob(p_old) - log_sigma
+        log_q = self.std_normal.log_prob(u) + self.std_normal.log_prob(p_old / torch.exp(self.momentum_scale)) - log_sigma
         log_aux = sum_log_alpha - sum_log_jacobian
 
         ## logdensity of prior
-        log_priors = self.std_normal.log_prob(z) + self.std_normal.log_prob(p_)
+        log_priors = self.std_normal.log_prob(z) + self.std_normal.log_prob(p_/ torch.exp(self.momentum_scale))
 
         ## logits
         logits = self.target.decoder(z)

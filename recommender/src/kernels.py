@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+import pdb
 
 
 class HMC_our(nn.Module):
@@ -54,7 +55,7 @@ class HMC_our(nn.Module):
         return q_, p_
 
     def make_transition(self, q_old, p_old, target_distr, k=None, x=None, flows=None, args=None, get_prior=None,
-                        prior_flow=None):
+                        prior_flow=None, scales=None):
         """
         The function returns directions (-1, 0 or +1), sampled in the current positions
         Input:
@@ -78,12 +79,14 @@ class HMC_our(nn.Module):
         ############ Then we compute new points and densities ############
         q_upd, p_upd = self._forward_step(q_old=q_old, p_old=p_ref, k=k, target=target_distr, x=x)
 
+        if scales is None:
+            scales = torch.ones_like(p_old[0, :][None])
         target_log_density_f = target_distr.get_logdensity(z=q_upd, x=x, prior=get_prior, args=args,
-                                                           prior_flow=prior_flow) + self.std_normal.log_prob(p_upd).sum(
+                                                           prior_flow=prior_flow) + self.std_normal.log_prob(p_upd / scales).sum(
             1)
         target_log_density_old = target_distr.get_logdensity(z=q_old, x=x, prior=get_prior, args=args,
                                                              prior_flow=prior_flow) + self.std_normal.log_prob(
-            p_ref).sum(1)
+            p_ref / scales).sum(1)
 
         log_t = target_log_density_f - target_log_density_old
         log_1_t = torch.logsumexp(torch.cat([torch.zeros_like(log_t).view(-1, 1),
@@ -110,7 +113,7 @@ class HMC_our(nn.Module):
         return q_new, p_new, log_jac, current_log_alphas, a, q_upd
 
     def get_grad(self, q, target, x=None):
-        q_init = q.detach().requires_grad_(True)
+        q_init = q.clone().detach().requires_grad_(True)
         if self.naf:
             sum_log_jac = torch.zeros(q_init.shape[0], device=self.device)
             q_prev = q_init
