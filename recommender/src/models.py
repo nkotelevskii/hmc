@@ -120,7 +120,6 @@ class Target(nn.Module):
         logits = self.decoder(z)
         log_softmax_var = nn.LogSoftmax(dim=-1)(logits)
         log_density = torch.sum(log_softmax_var * x, dim=1) + self.prior.log_prob(z).sum(1)
-        # log_density = torch.mean(torch.sum(log_softmax_var * x, dim=1))
         return log_density
 
 
@@ -185,28 +184,30 @@ class Multi_our_VAE(nn.Module):
 
         # pdb.set_trace()
 
-        p_ = self.std_normal.sample(z.shape) * torch.exp(self.momentum_scale)
+        scales = torch.exp(self.momentum_scale)
+        p_ = self.std_normal.sample(z.shape) * scales
         p_old = p_.clone()
 
         all_directions = torch.tensor([], device=x.device)
 
         for i in range(self.K):
-            cond_vector = self.std_normal.sample(p_.shape) * torch.exp(self.momentum_scale)
+            cond_vector = self.std_normal.sample(p_.shape) * scales
             z, p_, log_jac, current_log_alphas, directions, _ = self.transitions[i].make_transition(q_old=z, x=x,
                                                                                                     p_old=p_,
                                                                                                     k=cond_vector,
-                                                                                                    target_distr=self.target)
+                                                                                                    target_distr=self.target,
+                                                                                                    scales=scales)
             sum_log_alpha = sum_log_alpha + current_log_alphas
             sum_log_jacobian = sum_log_jacobian + log_jac
             all_directions = torch.cat([all_directions, directions.view(-1, 1)], dim=1)
 
         ## logdensity of Variational family
         log_sigma = torch.log(std)
-        log_q = self.std_normal.log_prob(u) + self.std_normal.log_prob(p_old / torch.exp(self.momentum_scale)) - log_sigma
+        log_q = self.std_normal.log_prob(u) + self.std_normal.log_prob(p_old / scales) - log_sigma
         log_aux = sum_log_alpha - sum_log_jacobian
 
         ## logdensity of prior
-        log_priors = self.std_normal.log_prob(z) + self.std_normal.log_prob(p_/ torch.exp(self.momentum_scale))
+        log_priors = self.std_normal.log_prob(z) + self.std_normal.log_prob(p_/ scales)
 
         ## logits
         logits = self.target.decoder(z)

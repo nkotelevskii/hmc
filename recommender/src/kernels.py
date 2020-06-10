@@ -30,12 +30,12 @@ class HMC_our(nn.Module):
         Input:
         q_old - current position
         x - data object (optional)
-        k - number of transition (optional) k[0] - value, k[1] - method
+        k - auxiliary variable
         target - target class (optional)
         p_old - auxilary variables for some types of transitions (like momentum for HMC)
         Output:
-        q_new - new position = T(q_old)
-        log_jac - log_jacobian of the transformation
+        q_new - new position
+        p_new - new momentum
         """
         #         gamma = torch.sigmoid(self.gamma_logit)  # to make eps positive
         #         pdb.set_trace()
@@ -57,20 +57,21 @@ class HMC_our(nn.Module):
     def make_transition(self, q_old, p_old, target_distr, k=None, x=None, flows=None, args=None, get_prior=None,
                         prior_flow=None, scales=None):
         """
-        The function returns directions (-1, 0 or +1), sampled in the current positions
         Input:
-        q_old - point of evaluation
+        q_old - current position
+        p_old - current momentum
         target_distr - target distribution
         x - data object (optional)
-        k - number of transition (optional)
-        detach - whether to detach target (decoder) from computational graph or not
+        k - vector for partial momentum refreshment
+        args - dict of arguments
+        scales - if we train scales for momentum or not
         Output:
-        q_new - new points
+        q_new - new position
+        p_new - new momentum
         log_jac - log jacobians of transformations
         current_log_alphas - current log_alphas, corresponding to sampled decision variables
-        current_log_probs - current log probabilities of forward transition
-        a - decision variables (-1, 0 or +1)
-        p_new (optional) - new momentum (for HMC, if p_old is not None)
+        a - decision variables (0 or +1)
+        q_upd - proposal states
         """
         ### Partial momentum refresh
         alpha = torch.sigmoid(self.alpha_logit)
@@ -153,12 +154,12 @@ class HMC_vanilla(nn.Module):
         Input:
         q_old - current position
         x - data object (optional)
-        k - number of transition (optional) k[0] - value, k[1] - method
+        k - auxiliary variable
         target - target class (optional)
         p_old - auxilary variables for some types of transitions (like momentum for HMC)
         Output:
-        q_new - new position = T(q_old)
-        log_jac - log_jacobian of the transformation
+        q_new - new position
+        p_new - new momentum
         """
         #         gamma = torch.sigmoid(self.gamma_logit)
         gamma = torch.exp(self.gamma)
@@ -184,20 +185,21 @@ class HMC_vanilla(nn.Module):
     def make_transition(self, q_old, p_old, target_distr, k=None, x=None, flows=None, args=None, get_prior=None,
                         prior_flow=None):
         """
-        The function returns directions (-1, 0 or +1), sampled in the current positions
         Input:
-        q_old - point of evaluation
+        q_old - current position
+        p_old - current momentum
         target_distr - target distribution
         x - data object (optional)
-        k - number of transition (optional)
-        detach - whether to detach target (decoder) from computational graph or not
+        k - vector for partial momentum refreshment
+        args - dict of arguments
+        scales - if we train scales for momentum or not
         Output:
-        q_new - new points
+        q_new - new position
+        p_new - new momentum
         log_jac - log jacobians of transformations
         current_log_alphas - current log_alphas, corresponding to sampled decision variables
-        current_log_probs - current log probabilities of forward transition
-        a - decision variables (-1, 0 or +1)
-        p_new (optional) - new momentum (for HMC, if p_old is not None)
+        a - decision variables (0 or +1)
+        q_upd - proposal states
         """
         # pdb.set_trace()
         ### Partial momentum refresh

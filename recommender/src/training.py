@@ -25,6 +25,8 @@ def train_model(model, dataset, args):
         ],
             lr=lrenc, weight_decay=args.l2_coeff)
 
+    scheduler = MultiStepLR(optimizer, [20, 50, 75, 100, 150, 200], gamma=0.3)
+
     for epoch in tqdm(range(args.n_epoches)):
         model.train()
         for bnum, batch_train in enumerate(dataset.next_train_batch()):
@@ -51,6 +53,8 @@ def train_model(model, dataset, args):
                 print(neg_ELBO.cpu().detach().numpy())
 
             update_count += 1
+
+        scheduler.step()
 
         # compute validation NDCG
         model.eval()
@@ -124,12 +128,13 @@ def train_met_model(model, dataset, args):
         ],
             lr=lrenc, weight_decay=args.l2_coeff)
     if args.data == 'ml20m':
-        scheduler = MultiStepLR(optimizer, [10, 40, 60, 100], gamma=0.2)
+        # scheduler = MultiStepLR(optimizer, [10, 40, 60, 100], gamma=0.2)
         # scheduler = MultiStepLR(optimizer, [20, 40, 100], gamma=0.2)
+        scheduler = MultiStepLR(optimizer, [20, 50, 75, 100, 150, 200], gamma=0.3)
     elif args.data == 'gowalla':
-        scheduler = MultiStepLR(optimizer, [20, 50, 75, 100, 150], gamma=0.75)
+        scheduler = MultiStepLR(optimizer, [20, 50, 75, 100, 150, 200], gamma=0.3)
     else:
-        scheduler = MultiStepLR(optimizer, [20, 50, 100, 150], gamma=0.25)
+        scheduler = MultiStepLR(optimizer, [20, 50, 75, 100, 150, 200], gamma=0.3)
 
     for epoch in tqdm(range(args.n_epoches)):
         model.train()

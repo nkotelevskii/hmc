@@ -6,6 +6,8 @@ import torch
 from models import MultiVAE, MultiDAE, Multi_our_VAE, MultiHoffmanVAE, Multi_ourHoffman_VAE
 from training import train_model, train_met_model, train_hoffman_model, train_methoffman_model
 
+from rezende_plot import run_rezende
+
 from args import get_args
 from data import Dataset
 import pdb
@@ -84,6 +86,9 @@ def main(args):
     elif args.model == 'Multi_ourHoffman_VAE':
         model = Multi_ourHoffman_VAE(layers, args=args).to(args.device)
         metric_values = train_methoffman_model(model, dataset, args)
+    elif args.model == 'Rezende':
+        run_rezende(args)
+        return
 
     np.savetxt(
         "../logs/metrics_{}_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}_learntransitions_{}_initstepsize_{}_learnscale_{}.txt".format(args.data, args.model, args.K, args.N,
