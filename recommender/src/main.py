@@ -15,10 +15,10 @@ import pdb
 parser = argparse.ArgumentParser(
     description='VAE for CF')
 
-parser.add_argument('-data', type=str, choices=['ml20m', 'foursquare', 'gowalla', 'ml25m', 'ml100k'],
+parser.add_argument('-data', type=str, choices=['ml20m', 'foursquare', 'gowalla', 'ml25m', 'ml100k', 'Rezende'],
                     help='Specify, which data to use', required=True)
 parser.add_argument('-model', type=str,
-                    choices=['MultiVAE', 'MultiDAE', 'Multi_our_VAE', 'MultiHoffmanVAE', 'Multi_ourHoffman_VAE'],
+                    choices=['MultiVAE', 'MultiDAE', 'Multi_our_VAE', 'MultiHoffmanVAE', 'Multi_ourHoffman_VAE', 'Rezende'],
                     help='Specify, which model to use', required=True)
 parser.add_argument('-K', type=int, help='Number of transitions (MH)', required=False)
 parser.add_argument('-N', type=int, help='Number of leapfrogs', required=False)
@@ -64,6 +64,9 @@ def set_seeds(rand_seed):
 def main(args):
     set_seeds(322)
     args = get_args(args)
+    if args.model == 'Rezende':
+        run_rezende(args)
+        return
     dataset = Dataset(args)
     # pdb.set_trace()
     layers = [200, 600, dataset.n_items]
@@ -86,9 +89,6 @@ def main(args):
     elif args.model == 'Multi_ourHoffman_VAE':
         model = Multi_ourHoffman_VAE(layers, args=args).to(args.device)
         metric_values = train_methoffman_model(model, dataset, args)
-    elif args.model == 'Rezende':
-        run_rezende(args)
-        return
 
     np.savetxt(
         "../logs/metrics_{}_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}_learntransitions_{}_initstepsize_{}_learnscale_{}.txt".format(args.data, args.model, args.K, args.N,
