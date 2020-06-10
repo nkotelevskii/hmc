@@ -54,6 +54,9 @@ class MultiDAE(nn.Module):
 
 
 class MultiVAE(nn.Module):
+    '''
+    Procedure described in Hoffman's paper (TODO: Cite the paper)
+    '''
     def __init__(self, p_dims, q_dims=None, args=None):
         super(MultiVAE, self).__init__()
 
@@ -165,6 +168,8 @@ class Multi_our_VAE(nn.Module):
                                            requires_grad=args.learnscale)
 
     def forward(self, x_initial, is_training_ph=1.):
+        # self.momentum_scale = nn.Parameter(torch.zeros(200, device=x_initial.device, dtype=torch.float32)[None, :],
+        #                                    requires_grad=False)
         l2 = torch.sum(x_initial ** 2, 1)[..., None]
         x_normed = x_initial / torch.sqrt(torch.max(l2, torch.ones_like(l2) * 1e-12))
         # if self.annealing:

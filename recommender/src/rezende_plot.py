@@ -119,25 +119,25 @@ class Target():
 def run_rezende(args):
     args.z_dim = 2
     args.data_dim = 2
-    args.n_samples = 10000
-    args.n_batches = 10000
+    args.n_samples = 100000
+    args.n_batches = 25000
 
     prior = torch.distributions.Normal(loc=torch.tensor(0., dtype=args.torchType, device=args.device),
                                        scale=torch.tensor(1., dtype=args.torchType, device=args.device))
-    # # rnvp
-    # all_samples = run_rezende_rnvp(args, prior)
-    # for i, samples in enumerate(all_samples):
-    #     np.savetxt('../rezende_data/rnvp_{}.txt'.format(i), samples)
+    # rnvp
+    all_samples = run_rezende_rnvp(args, prior)
+    for i, samples in enumerate(all_samples):
+        np.savetxt('../rezende_data/rnvp_{}.txt'.format(i), samples)
 
     # # nuts
     # all_samples = run_rezende_nuts(args, prior, n_chains=1)
     # for i, samples in enumerate(all_samples):
     #     np.savetxt('../rezende_data/nuts_{}.txt'.format(i), samples)
 
-    # # hoffman
-    # all_samples = run_rezende_hoffman(args, prior)
-    # for i, samples in enumerate(all_samples):
-    #     np.savetxt('../rezende_data/hoffman_{}.txt'.format(i), samples)
+    # hoffman
+    all_samples = run_rezende_hoffman(args, prior)
+    for i, samples in enumerate(all_samples):
+        np.savetxt('../rezende_data/hoffman_{}.txt'.format(i), samples)
 
     # methmc
     all_samples = run_rezende_methmc(args, prior)
@@ -310,7 +310,7 @@ def run_rezende_methmc(args, prior):
                 break
 
         samples = prior.sample((args.n_samples, 2))
-        p_ = prior.sample(z.shape) * scales
+        p_ = prior.sample(samples.shape) * scales
         for i in range(args.K):
             cond_vector = prior.sample(p_.shape) * scales
             samples, p_, _, _, _, _ = transitions[i].make_transition(q_old=samples,
