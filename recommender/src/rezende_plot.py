@@ -140,7 +140,7 @@ def run_rezende_hoffman(args, prior):
         optimizer = torch.optim.Adam(params=[mu_init_hoff, sigma_init_hoff])
         scheduler = MultiStepLR(optimizer, [200, 500, 750, 1000, 1500, 2000], gamma=0.3)
         for i in tqdm(range(args.n_batches)):
-            u_init = prior.sample((250, 2))
+            u_init = prior.sample((500, 2))
             q_init = mu_init_hoff + nn.functional.softplus(sigma_init_hoff) * u_init
 
             current_kl = prior.log_prob(u_init).mean() - torch.mean(
@@ -188,10 +188,10 @@ def run_rezende_rnvp(args, prior):
         target = Target(cur_dat).get_logdensity
         transitions_rnvp = nn.ModuleList([RNVP(args=args).to(args.device) for _ in range(2)])
         optimizer_rnvp = torch.optim.Adam(params=transitions_rnvp.parameters())
-        scheduler = MultiStepLR(optimizer_rnvp, [200, 500, 750, 1000, 1500, 2000], gamma=0.3)
+        scheduler = MultiStepLR(optimizer_rnvp, [750, 1500, 2000], gamma=0.3)
         for current_b in tqdm(range(args.n_batches)):
             optimizer_rnvp.zero_grad()
-            u = prior.sample((250, args.z_dim))
+            u = prior.sample((500, args.z_dim))
             sum_log_jacobian = torch.zeros(u.shape[0], dtype=args.torchType,
                                            device=args.device)  # for log_jacobian accumulation
             z = u
@@ -237,7 +237,7 @@ def run_rezende_methmc(args, prior):
         optimizer = torch.optim.Adam(list(transitions.parameters()) + [momentum_scale, mu_init, sigma_init])
         scheduler = MultiStepLR(optimizer, [200, 500, 750, 1000, 1500, 2500], gamma=0.3)
         for bnum in range(args.n_batches):
-            u = prior.sample((250, 2))
+            u = prior.sample((500, 2))
             z = mu_init + nn.functional.softplus(sigma_init) * u
 
             sum_log_alpha = torch.zeros_like(z[:, 0])
@@ -288,9 +288,10 @@ def run_rezende_methmc(args, prior):
                 break
             scheduler.step()
 
-        scales.requires_grad_(False)
+        momentum_scale.requires_grad_(False)
         mu_init.requires_grad_(False)
         sigma_init.requires_grad_(False)
+        scales = torch.exp(momentum_scale)
 
         samples = mu_init + prior.sample((args.n_samples, 2)) * nn.functional.softplus(sigma_init)
         p_ = prior.sample(samples.shape) * scales
