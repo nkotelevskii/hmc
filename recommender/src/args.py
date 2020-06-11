@@ -27,21 +27,20 @@ def get_args(args):
     ## Transition parameters (only for our vae)
     if args.learntransitions:
         args.gamma = 0.01
-        # args.alpha = 0.5
     else:
         args.gamma = 0.005  # Stepsize
-    args.alpha = 0.9  #0.5  # For partial momentum refresh
+    args.alpha = 0.9   # For partial momentum refresh
     args.use_barker = True
     args.use_partialref = True
 
 
     if args.annealing:
         if args.data == 'ml20m':
-            args.total_anneal_steps = 46000  #/ 4
+            args.total_anneal_steps = 46000
         elif args.data == 'gowalla':
-            args.total_anneal_steps = 27200 / 4
+            args.total_anneal_steps = 27200
         elif args.data == 'foursquare':
-            args.total_anneal_steps = 31400 / 4
+            args.total_anneal_steps = 31400
     else:
         args.total_anneal_steps = 0
         args.anneal_cap = 1.

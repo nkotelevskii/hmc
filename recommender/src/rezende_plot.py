@@ -3,7 +3,7 @@ import numpy as np
 import torch.nn as nn
 import pdb
 from tqdm import tqdm
-
+from torch.optim.lr_scheduler import MultiStepLR
 import pyro
 from pyro.infer.mcmc import HMC, MCMC, NUTS
 from kernels import HMC_vanilla, HMC_our
@@ -153,7 +153,7 @@ def run_rezende_hoffman(args, prior):
         mu_init_hoff = nn.Parameter(torch.zeros(args.data_dim, device=args.device, dtype=args.torchType))
         sigma_init_hoff = nn.Parameter(torch.ones(args.data_dim, device=args.device, dtype=args.torchType))
         optimizer = torch.optim.Adam(params=[mu_init_hoff, sigma_init_hoff])
-
+        scheduler = MultiStepLR(optimizer, [2000, 5000, 7500, 10000, 15000, 20000], gamma=0.3)
         for i in tqdm(range(args.n_batches)):
             u_init = prior.sample((500, 2))
             q_init = mu_init_hoff + nn.functional.softplus(sigma_init_hoff) * u_init
@@ -165,7 +165,7 @@ def run_rezende_hoffman(args, prior):
             optimizer.zero_grad()
             if i % 1000 == 0:
                 print(current_kl.mean().cpu().detach().numpy())
-
+            scheduler.step()
         mu_init_hoff.requires_grad_(False)
         sigma_init_hoff.requires_grad_(False)
 
@@ -224,7 +224,7 @@ def run_rezende_rnvp(args, prior):
 
         transitions_rnvp = nn.ModuleList([RNVP(args=args).to(args.device) for _ in range(2)])
         optimizer_rnvp = torch.optim.Adam(params=transitions_rnvp.parameters())
-
+        scheduler = MultiStepLR(optimizer_rnvp, [2000, 5000, 7500, 10000, 15000, 20000], gamma=0.3)
         for current_b in tqdm(range(args.n_batches)):
             optimizer_rnvp.zero_grad()
             u = prior.sample((500, args.z_dim))
@@ -242,6 +242,7 @@ def run_rezende_rnvp(args, prior):
             optimizer_rnvp.zero_grad()
             if current_b % 1000 == 0:
                 print('Current ELBO is ', elbo.cpu().detach().item())
+            scheduler.step()
 
         samples = prior.sample((args.n_samples, 2))
         with torch.no_grad():
@@ -258,11 +259,15 @@ def run_rezende_methmc(args, prior):
         ## Define reverse kernel (if it is needed)
         torch_log_2 = torch.tensor(np.log(2), device=args.device, dtype=args.torchType)
         momentum_scale = nn.Parameter(torch.zeros(args.z_dim, device=args.device, dtype=args.torchType)[None, :],
-                                           requires_grad=args.learnscale)
-        optimizer = torch.optim.Adam(list(transitions.parameters()) + [momentum_scale])
+                                      requires_grad=args.learnscale)
+        mu_init = nn.Parameter(torch.zeros(args.data_dim, device=args.device, dtype=args.torchType))
+        sigma_init = nn.Parameter(torch.ones(args.data_dim, device=args.device, dtype=args.torchType))
+        optimizer = torch.optim.Adam(list(transitions.parameters()) + [momentum_scale, mu_init, sigma_init])
+        scheduler = MultiStepLR(optimizer, [2000, 5000, 7500, 10000, 15000, 20000], gamma=0.3)
         for bnum in range(args.n_batches):
-            z = prior.sample((500, 2))
-            u = z.clone()
+            u = prior.sample((1000, 2))
+            z = mu_init + nn.functional.softplus(sigma_init) * u
+
             sum_log_alpha = torch.zeros_like(z[:, 0])
             sum_log_jacobian = torch.zeros_like(z[:, 0])
             scales = torch.exp(momentum_scale)
@@ -284,7 +289,8 @@ def run_rezende_methmc(args, prior):
             log_likelihood = target.get_logdensity(z).mean() + prior.log_prob(p_ / scales).mean()
             # compute objective
             log_r = -args.K * torch_log_2
-            log_q = prior.log_prob(u).mean() + prior.log_prob(p_old / scales).mean() - sum_log_jacobian.mean() + sum_log_alpha.mean()
+            log_sigma = torch.log(nn.functional.softplus(sigma_init))
+            log_q = prior.log_prob(u).mean() - log_sigma.mean() + prior.log_prob(p_old / scales).mean() - sum_log_jacobian.mean() + sum_log_alpha.mean()
             elbo_full = log_likelihood + log_r - log_q
             grad_elbo = elbo_full + elbo_full.detach() * torch.mean(sum_log_alpha)
             (-grad_elbo).backward()
@@ -308,8 +314,13 @@ def run_rezende_methmc(args, prior):
 
             if np.isnan(elbo_full.cpu().detach().numpy()):
                 break
+            scheduler.step()
 
-        samples = prior.sample((args.n_samples, 2))
+        sigma_init.requires_grad_(False)
+        mu_init.requires_grad_(False)
+        sigma_init.requires_grad_(False)
+
+        samples = mu_init + prior.sample((args.n_samples, 2)) * nn.functional.softplus(sigma_init)
         p_ = prior.sample(samples.shape) * scales
         for i in range(args.K):
             cond_vector = prior.sample(p_.shape) * scales
