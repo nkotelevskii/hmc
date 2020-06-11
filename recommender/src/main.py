@@ -9,15 +9,18 @@ from training import train_model, train_met_model
 
 from args import get_args
 from data import Dataset
+from preprocess import preprocess
 
 parser = argparse.ArgumentParser(
     description='VAE for CF')
 
+parser.add_argument('-preprocess', type=str, choices=['ml20m', 'foursquare', 'gowalla'],
+                    help='Specify, which data to preprocess', required=False)
 parser.add_argument('-data', type=str, choices=['ml20m', 'foursquare', 'gowalla', 'Rezende'],
-                    help='Specify, which data to use', required=True)
+                    help='Specify, which data to use', required=False)
 parser.add_argument('-model', type=str,
                     choices=['MultiVAE', 'Multi_our_VAE', 'Rezende'],
-                    help='Specify, which model to use', required=True)
+                    help='Specify, which model to use', required=False)
 parser.add_argument('-K', type=int, help='Number of transitions (MH)', required=False)
 parser.add_argument('-N', type=int, help='Number of leapfrogs', required=False)
 parser.add_argument('-learnable_reverse', type=str, choices=['True', 'False'],
@@ -56,6 +59,19 @@ def set_seeds(rand_seed):
 def main(args):
     set_seeds(322)
     args = get_args(args)
+
+    if args.preprocess:
+	"""
+	to preprocess a dataset you just need to pass the 'preprocess' option corresponding to the dataset name, for instance:
+		-preprocess foursquare
+	the raw data must be in the ../data/raw/<dataset name> folder
+	"""
+        if args.raw_data_dir:
+            RAW_DATA_DIR = data_dir + str(args.preprocess)
+        else:
+            RAW_DATA_DIR = '../data/raw/{}/checkins'.format(args.preprocess)
+        preprocess(RAW_DATA_DIR, args.preprocess)
+
     if args.model == 'Rezende':
         run_rezende(args)
         return
