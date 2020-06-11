@@ -3,9 +3,8 @@ import random
 
 import numpy as np
 import torch
-from models import MultiVAE, MultiDAE, Multi_our_VAE, MultiHoffmanVAE, Multi_ourHoffman_VAE
-from training import train_model, train_met_model, train_hoffman_model, train_methoffman_model
-
+from models import MultiVAE, Multi_our_VAE
+from training import train_model, train_met_model
 from rezende_plot import run_rezende
 
 from args import get_args
@@ -15,10 +14,10 @@ import pdb
 parser = argparse.ArgumentParser(
     description='VAE for CF')
 
-parser.add_argument('-data', type=str, choices=['ml20m', 'foursquare', 'gowalla', 'ml25m', 'ml100k', 'Rezende'],
+parser.add_argument('-data', type=str, choices=['ml20m', 'foursquare', 'gowalla', 'Rezende'],
                     help='Specify, which data to use', required=True)
 parser.add_argument('-model', type=str,
-                    choices=['MultiVAE', 'MultiDAE', 'Multi_our_VAE', 'MultiHoffmanVAE', 'Multi_ourHoffman_VAE', 'Rezende'],
+                    choices=['MultiVAE', 'Multi_our_VAE', 'Rezende'],
                     help='Specify, which model to use', required=True)
 parser.add_argument('-K', type=int, help='Number of transitions (MH)', required=False)
 parser.add_argument('-N', type=int, help='Number of leapfrogs', required=False)
@@ -27,7 +26,7 @@ parser.add_argument('-learnable_reverse', type=str, choices=['True', 'False'],
 parser.add_argument('-annealing', type=str, choices=['True', 'False'],
                     help='If we use annealing or not', default='True')
 parser.add_argument('-learntransitions', type=str, choices=['True', 'False'],
-                    help='If we train transitions or not', default='True')
+                    help='If we train transitions or not', default='False')
 
 parser.add_argument('-learnscale', type=str, choices=['True', 'False'],
                     help='If we train diagonal matrix for momentum rescale or not', default='False')
@@ -42,11 +41,6 @@ parser.add_argument('-train_batch_size', type=int, help='Batch size', default=50
 parser.add_argument('-n_val_samples', type=int, help='How many samples to use on evaluation', default=1)
 
 parser.add_argument('-anneal_cap', type=float, help='Maximal annealing coeff', default=1.)
-
-
-parser.add_argument('-num_flows', type=int, help='How many NAF to use', default=1)
-
-
 
 
 args = parser.parse_args()

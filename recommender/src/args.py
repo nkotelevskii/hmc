@@ -1,7 +1,6 @@
 import torch
 from metrics import NDCG_binary_at_k_batch, Recall_at_k_batch
 
-
 def get_args(args):
     class dotdict(dict):
         """dot.notation access to dictionary attributes"""
@@ -28,7 +27,10 @@ def get_args(args):
     if args.learntransitions:
         args.gamma = 0.01
     else:
-        args.gamma = 0.005  # Stepsize
+        if args.data == 'Rezende':
+            args.gamma = 0.1  # Stepsize
+        else:
+            args.gamma = 0.005  # Stepsize
     args.alpha = 0.9   # For partial momentum refresh
     args.use_barker = True
     args.use_partialref = True

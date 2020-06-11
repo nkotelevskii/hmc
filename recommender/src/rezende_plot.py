@@ -1,11 +1,8 @@
 import torch
 import numpy as np
 import torch.nn as nn
-import pdb
 from tqdm import tqdm
 from torch.optim.lr_scheduler import MultiStepLR
-import pyro
-from pyro.infer.mcmc import HMC, MCMC, NUTS
 from kernels import HMC_vanilla, HMC_our
 
 class RNVP(nn.Module):
@@ -43,16 +40,6 @@ class RNVP(nn.Module):
                 log_det_J += s.sum(dim=1)
         z_new = z_old
         return z_new, log_det_J
-
-    def log_prob(self, x):
-        z, logp = self.f(x)
-        return self.prior.log_prob(z) + logp
-
-    def sample(self, batchSize):
-        z = self.prior.sample((batchSize, 1))
-        logp = self.prior.log_prob(z)
-        x, log_det_J = self.g(z)
-        return x
 
 class Target():
     def __init__(self, cur_dat, energy=False):
@@ -120,24 +107,19 @@ def run_rezende(args):
     args.z_dim = 2
     args.data_dim = 2
     args.n_samples = 100000
-    args.n_batches = 25000
+    args.n_batches = 5000
 
     prior = torch.distributions.Normal(loc=torch.tensor(0., dtype=args.torchType, device=args.device),
                                        scale=torch.tensor(1., dtype=args.torchType, device=args.device))
-    # rnvp
-    all_samples = run_rezende_rnvp(args, prior)
-    for i, samples in enumerate(all_samples):
-        np.savetxt('../rezende_data/rnvp_{}.txt'.format(i), samples)
-
-    # # nuts
-    # all_samples = run_rezende_nuts(args, prior, n_chains=1)
+    # # rnvp
+    # all_samples = run_rezende_rnvp(args, prior)
     # for i, samples in enumerate(all_samples):
-    #     np.savetxt('../rezende_data/nuts_{}.txt'.format(i), samples)
+    #     np.savetxt('../rezende_data/rnvp_{}.txt'.format(i), samples)
 
-    # hoffman
-    all_samples = run_rezende_hoffman(args, prior)
-    for i, samples in enumerate(all_samples):
-        np.savetxt('../rezende_data/hoffman_{}.txt'.format(i), samples)
+    # # hoffman
+    # all_samples = run_rezende_hoffman(args, prior)
+    # for i, samples in enumerate(all_samples):
+    #     np.savetxt('../rezende_data/hoffman_{}.txt'.format(i), samples)
 
     # methmc
     all_samples = run_rezende_methmc(args, prior)
@@ -183,26 +165,6 @@ def run_rezende_hoffman(args, prior):
         samples_hoffman = q_new
         all_samples.append(samples_hoffman.cpu().detach().numpy())
 
-    return all_samples
-
-def run_rezende_nuts(args, prior, n_chains=1):
-    # nuts
-    # Init NUTS sampler
-    all_samples = []
-    for cur_dat in ['t1', 't2', 't3', 't4']:
-        targ_log_dens = Target(cur_dat, True).get_logdensity
-        kernel = NUTS(potential_fn=targ_log_dens, max_tree_depth=6)
-        target_samples = torch.tensor([], device=args.device)
-        for _ in range(n_chains):
-            init_samples = prior.sample((args.z_dim,)).view(1, args.z_dim)
-            init_params = {'points': init_samples}
-            mcmc = MCMC(kernel=kernel, num_samples=args.n_samples // n_chains,
-                        initial_params=init_params,
-                        num_chains=1, warmup_steps=2000)
-            mcmc.run()
-            samples = torch.cat([target_samples, mcmc.get_samples()['points']], dim=0)
-        samples = samples.squeeze().cpu().numpy()
-        all_samples.append(samples)
     return all_samples
 
 def run_rezende_rnvp(args, prior):
@@ -256,14 +218,20 @@ def run_rezende_methmc(args, prior):
     for cur_dat in ['t1', 't2', 't3', 't4']:
         target = Target(cur_dat)
         transitions = nn.ModuleList([HMC_our(kwargs=args).to(args.device) for _ in range(args['K'])])
-        ## Define reverse kernel (if it is needed)
+        if not args.learntransitions:
+            for p in transitions.parameters():
+                p.requires_grad_(False)
+        else:
+            for k in range(len(transitions)):
+                transitions[k].alpha_logit.requires_grad_(False)
+
         torch_log_2 = torch.tensor(np.log(2), device=args.device, dtype=args.torchType)
         momentum_scale = nn.Parameter(torch.zeros(args.z_dim, device=args.device, dtype=args.torchType)[None, :],
                                       requires_grad=args.learnscale)
         mu_init = nn.Parameter(torch.zeros(args.data_dim, device=args.device, dtype=args.torchType))
         sigma_init = nn.Parameter(torch.ones(args.data_dim, device=args.device, dtype=args.torchType))
         optimizer = torch.optim.Adam(list(transitions.parameters()) + [momentum_scale, mu_init, sigma_init])
-        scheduler = MultiStepLR(optimizer, [2000, 5000, 7500, 10000, 15000, 20000], gamma=0.3)
+        scheduler = MultiStepLR(optimizer, [200, 500, 750, 1000, 1500, 2500], gamma=0.3)
         for bnum in range(args.n_batches):
             u = prior.sample((1000, 2))
             z = mu_init + nn.functional.softplus(sigma_init) * u
@@ -298,7 +266,6 @@ def run_rezende_methmc(args, prior):
             optimizer.step()
             optimizer.zero_grad()
 
-            # pdb.set_trace()
             if bnum % 1000 == 0:
                 if args.learnscale:
                     print('Min scale', torch.exp(momentum_scale.detach()).min().item(), 'Max scale',
@@ -316,7 +283,7 @@ def run_rezende_methmc(args, prior):
                 break
             scheduler.step()
 
-        sigma_init.requires_grad_(False)
+        scales.requires_grad_(False)
         mu_init.requires_grad_(False)
         sigma_init.requires_grad_(False)
 

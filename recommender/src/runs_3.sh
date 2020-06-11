@@ -1,2 +1,0 @@
-python3 main.py -data foursquare -model Multi_our_VAE -annealing False -K 1 -N 2 -learnable_reverse False -gpu 1 -lrdec 1e-3 -lrenc 3e-3 -n_val_samples 30 -learntransitions False -train_batch_size 500 -n_epoches 200
-python3 main.py -data foursquare -model Multi_our_VAE -annealing False -K 1 -N 2 -learnable_reverse False -gpu 1 -lrdec 1e-3 -lrenc 3e-3 -n_val_samples 30 -learntransitions False -train_batch_size 500 -n_epoches 200
