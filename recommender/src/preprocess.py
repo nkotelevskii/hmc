@@ -56,19 +56,22 @@ def preprocess(RAW_DATA_FILE, dataset, clicks_number=20000000):
     if not os.path.exists(os.path.dirname(clean_dir)):
         os.makedirs(os.path.dirname(clean_dir))
 
-    df = pd.read_csv(RAW_DATA_FILE, error_bad_lines=False, nrows=clicks_number, sep='\t', usecols=[0,1], names=['user', 'item'])
 
     min_uc=5
     min_sc=5
     if dataset == 'foursquare':
+        df = pd.read_csv(RAW_DATA_FILE, error_bad_lines=False, nrows=clicks_number, sep='\t', usecols=[0,1], names=['user', 'item'])
         n_heldout_users = 10000
         min_uc=38
         min_sc=80
     if dataset == 'gowalla':
+        df = pd.read_csv(RAW_DATA_FILE, error_bad_lines=False, nrows=clicks_number, sep='\t', usecols=[0,1], names=['user', 'item'])
         n_heldout_users = 10000
         min_uc=15
         min_sc=95
     if dataset == 'ml20':
+        ml20_ratings = pd.read_csv(RAW_DATA_FILE, error_bad_lines=False, header=0, nrows=clicks_number, usecols=[0, 1, 2], names=['user', 'item', 'rating'])
+        ml20_ratings = ml20_ratings[ml20_ratings['rating'] > 3.5]
         n_heldout_users = 10000
         min_uc=55
         min_sc=10

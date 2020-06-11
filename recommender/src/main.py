@@ -14,7 +14,7 @@ from preprocess import preprocess
 parser = argparse.ArgumentParser(
     description='VAE for CF')
 
-parser.add_argument('-preprocess', type=str, choices=['ml20m', 'foursquare', 'gowalla'],
+parser.add_argument('-preprocess', type=str, choices=['ml20', 'foursquare', 'gowalla'],
                     help='Specify, which data to preprocess', required=False)
 parser.add_argument('-data', type=str, choices=['ml20m', 'foursquare', 'gowalla', 'Rezende'],
                     help='Specify, which data to use', required=False)
