@@ -67,7 +67,7 @@ def main(args):
 	the raw data must be in the ../data/raw/<dataset name> folder
 	"""
         if args.raw_data_dir:
-            RAW_DATA_DIR = data_dir + str(args.preprocess)
+            RAW_DATA_DIR = args.raw_data_dir + str(args.preprocess)
         else:
             RAW_DATA_DIR = '../data/raw/{}/checkins'.format(args.preprocess)
         preprocess(RAW_DATA_DIR, args.preprocess)
