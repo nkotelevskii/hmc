@@ -113,20 +113,20 @@ def run_rezende(args):
 
     prior = torch.distributions.Normal(loc=torch.tensor(0., dtype=args.torchType, device=args.device),
                                        scale=torch.tensor(1., dtype=args.torchType, device=args.device))
-    # # rnvp
-    # all_samples = run_rezende_rnvp(args, prior)
-    # for i, samples in enumerate(all_samples):
-    #     np.savetxt('../rezende_data/rnvp_{}.txt'.format(i), samples)
+    # rnvp
+    all_samples = run_rezende_rnvp(args, prior)
+    for i, samples in enumerate(all_samples):
+        np.savetxt('../rezende_data/rnvp_{}.txt'.format(i), samples)
 
     # hoffman
     all_samples = run_rezende_hoffman(args, prior)
     for i, samples in enumerate(all_samples):
         np.savetxt('../rezende_data/hoffman_{}.txt'.format(i), samples)
 
-    # # methmc
-    # all_samples = run_rezende_methmc(args, prior)
-    # for i, samples in enumerate(all_samples):
-    #     np.savetxt('../rezende_data/methmc_{}.txt'.format(i), samples)
+    # methmc
+    all_samples = run_rezende_methmc(args, prior)
+    for i, samples in enumerate(all_samples):
+        np.savetxt('../rezende_data/methmc_{}.txt'.format(i), samples)
 
 
 def run_rezende_hoffman(args, prior):
@@ -138,9 +138,9 @@ def run_rezende_hoffman(args, prior):
         mu_init_hoff = nn.Parameter(torch.zeros(args.data_dim, device=args.device, dtype=args.torchType))
         sigma_init_hoff = nn.Parameter(torch.ones(args.data_dim, device=args.device, dtype=args.torchType))
         optimizer = torch.optim.Adam(params=[mu_init_hoff, sigma_init_hoff])
-        scheduler = MultiStepLR(optimizer, [2000, 5000, 7500, 10000, 15000, 20000], gamma=0.3)
+        scheduler = MultiStepLR(optimizer, [200, 500, 750, 1000, 1500, 2000], gamma=0.3)
         for i in tqdm(range(args.n_batches)):
-            u_init = prior.sample((500, 2))
+            u_init = prior.sample((250, 2))
             q_init = mu_init_hoff + nn.functional.softplus(sigma_init_hoff) * u_init
 
             current_kl = prior.log_prob(u_init).mean() - torch.mean(
@@ -173,7 +173,6 @@ def run_rezende_hoffman(args, prior):
 
 def run_rezende_rnvp(args, prior):
     # rnvp
-    # pdb.set_trace()
     args['z_dim'] = 2
     args['hidden_dim'] = 4
 
@@ -189,10 +188,10 @@ def run_rezende_rnvp(args, prior):
         target = Target(cur_dat).get_logdensity
         transitions_rnvp = nn.ModuleList([RNVP(args=args).to(args.device) for _ in range(2)])
         optimizer_rnvp = torch.optim.Adam(params=transitions_rnvp.parameters())
-        scheduler = MultiStepLR(optimizer_rnvp, [2000, 5000, 7500, 10000, 15000, 20000], gamma=0.3)
+        scheduler = MultiStepLR(optimizer_rnvp, [200, 500, 750, 1000, 1500, 2000], gamma=0.3)
         for current_b in tqdm(range(args.n_batches)):
             optimizer_rnvp.zero_grad()
-            u = prior.sample((500, args.z_dim))
+            u = prior.sample((250, args.z_dim))
             sum_log_jacobian = torch.zeros(u.shape[0], dtype=args.torchType,
                                            device=args.device)  # for log_jacobian accumulation
             z = u
@@ -238,7 +237,7 @@ def run_rezende_methmc(args, prior):
         optimizer = torch.optim.Adam(list(transitions.parameters()) + [momentum_scale, mu_init, sigma_init])
         scheduler = MultiStepLR(optimizer, [200, 500, 750, 1000, 1500, 2500], gamma=0.3)
         for bnum in range(args.n_batches):
-            u = prior.sample((1000, 2))
+            u = prior.sample((250, 2))
             z = mu_init + nn.functional.softplus(sigma_init) * u
 
             sum_log_alpha = torch.zeros_like(z[:, 0])
