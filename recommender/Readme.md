@@ -2,7 +2,7 @@ This the companion repository for the paper: **Metropolized Variational Autoenco
 
 ------
 
-All the experiments which appear in the paper can be run via the `runs.sh` script, located in `./src/` folder. You can run them from the folder, using the folliwing bash command:
+All the experiments which appear in the paper can be run via the `runs.sh` script, located in `./src/` folder. You can run them from the folder, using the following bash command:
 
 ```bash
 sh runs.sh
