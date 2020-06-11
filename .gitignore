@@ -12,5 +12,6 @@ recommender/*.pt
 recommender/src/*.pt
 recommender/models/*.pt
 recommender/best_models/*.pt
+recommender/old/*
 pyproject.toml
 poetry.lock

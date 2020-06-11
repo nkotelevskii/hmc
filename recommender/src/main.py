@@ -68,19 +68,9 @@ def main(args):
     if args.model == 'MultiVAE':
         model = MultiVAE(layers, args=args).to(args.device)
         metric_values = train_model(model, dataset, args)
-    elif args.model == 'MultiDAE':
-        args.l2_coeff = 0.01 / args.train_batch_size
-        model = MultiDAE([200, dataset.n_items], args=args).to(args.device)
-        metric_values = train_model(model, dataset, args)
     elif args.model == 'Multi_our_VAE':
         model = Multi_our_VAE(layers, args=args).to(args.device)
         metric_values = train_met_model(model, dataset, args)
-    elif args.model == 'MultiHoffmanVAE':
-        model = MultiHoffmanVAE(layers, args=args).to(args.device)
-        metric_values = train_hoffman_model(model, dataset, args)
-    elif args.model == 'Multi_ourHoffman_VAE':
-        model = Multi_ourHoffman_VAE(layers, args=args).to(args.device)
-        metric_values = train_methoffman_model(model, dataset, args)
 
     np.savetxt(
         "../logs/metrics_{}_{}_K_{}_N_{}_learnreverse_{}_anneal_{}_lrdec_{}_lrenc_{}_learntransitions_{}_initstepsize_{}_learnscale_{}.txt".format(

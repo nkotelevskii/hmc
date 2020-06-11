@@ -7,3 +7,5 @@ unzip models.zip
 
 rm data.zip
 rm models.zip
+
+mv ./best_models/ ./models/
