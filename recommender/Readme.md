@@ -27,7 +27,13 @@ Some extra arguments could be found in `/src/args.py`.
 
 ---
 
-To download data and the best models we received, run `download.sh`, using the following command:
+To download data and the best models we received, first install auxilary package using this command:
+
+```bash
+pip install wldhx.yadisk-direct
+```
+
+and then run `download.sh` (from the root), using the following command:
 
 ```bash
 sh download.sh
