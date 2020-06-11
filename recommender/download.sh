@@ -9,3 +9,5 @@ rm data.zip
 rm models.zip
 
 mv ./best_models/ ./models/
+
+mkdir ./logs

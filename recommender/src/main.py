@@ -4,12 +4,12 @@ import random
 import numpy as np
 import torch
 from models import MultiVAE, Multi_our_VAE
+from preprocess import preprocess
 from rezende_plot import run_rezende
 from training import train_model, train_met_model
 
 from args import get_args
 from data import Dataset
-from preprocess import preprocess
 
 parser = argparse.ArgumentParser(
     description='VAE for CF')
@@ -61,11 +61,11 @@ def main(args):
     args = get_args(args)
 
     if args.preprocess:
-	"""
-	to preprocess a dataset you just need to pass the 'preprocess' option corresponding to the dataset name, for instance:
-		-preprocess foursquare
-	the raw data must be in the ../data/raw/<dataset name> folder
-	"""
+        """
+        to preprocess a dataset you just need to pass the 'preprocess' option corresponding to the dataset name, for instance:
+            -preprocess foursquare
+        the raw data must be in the ../data/raw/<dataset name> folder
+        """
         if args.raw_data_dir:
             RAW_DATA_DIR = args.raw_data_dir + str(args.preprocess)
         else:
