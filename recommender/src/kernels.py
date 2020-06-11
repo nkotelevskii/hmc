@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import torch.nn as nn
-import pdb
 
 
 class HMC_our(nn.Module):
@@ -82,7 +81,8 @@ class HMC_our(nn.Module):
         if scales is None:
             scales = torch.ones_like(p_old[0, :][None])
         target_log_density_f = target_distr.get_logdensity(z=q_upd, x=x, prior=get_prior, args=args,
-                                                           prior_flow=prior_flow) + self.std_normal.log_prob(p_upd / scales).sum(
+                                                           prior_flow=prior_flow) + self.std_normal.log_prob(
+            p_upd / scales).sum(
             1)
         target_log_density_old = target_distr.get_logdensity(z=q_old, x=x, prior=get_prior, args=args,
                                                              prior_flow=prior_flow) + self.std_normal.log_prob(

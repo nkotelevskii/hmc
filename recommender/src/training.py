@@ -1,8 +1,9 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from tqdm import tqdm
 from torch.optim.lr_scheduler import MultiStepLR
+from tqdm import tqdm
+
 
 def train_model(model, dataset, args):
     metric_vad = []
@@ -130,7 +131,6 @@ def train_met_model(model, dataset, args):
             else:
                 anneal = args.anneal_cap
 
-            # pdb.set_trace()
             logits, log_q, log_aux, log_priors, log_r, sum_log_alpha, directions = model(batch_train)
 
             # loglikelihood part
@@ -149,11 +149,13 @@ def train_met_model(model, dataset, args):
             if (bnum % 200 == 0) and (epoch % print_info_ == 0):
                 print('Current anneal coeff:', anneal)
                 if args.learnscale:
-                    print('Min scale', torch.exp(model.momentum_scale.detach()).min().item(), 'Max scale', torch.exp(model.momentum_scale.detach()).max().item())
+                    print('Min scale', torch.exp(model.momentum_scale.detach()).min().item(), 'Max scale',
+                          torch.exp(model.momentum_scale.detach()).max().item())
                 print(elbo_full.cpu().detach().mean().numpy())
                 for k in range(args.K):
                     print('k =', k)
-                    print('0: {} and for +1: {}'.format((directions[:, k] == 0.).to(float).mean(), (directions[:, k] == 1.).to(float).mean()))
+                    print('0: {} and for +1: {}'.format((directions[:, k] == 0.).to(float).mean(),
+                                                        (directions[:, k] == 1.).to(float).mean()))
                     print('autoreg:', torch.sigmoid(model.transitions[k].alpha_logit.detach()).item())
                     print('stepsize', torch.exp(model.transitions[k].gamma.detach()).item())
                     print('-' * 100)
@@ -162,7 +164,7 @@ def train_met_model(model, dataset, args):
         if np.isnan(elbo_full.cpu().detach().mean().numpy()):
             break
 
-        if (args.data in ['ml20m', 'gowalla', 'foursquare']): # and not args.annealing:
+        if (args.data in ['ml20m', 'gowalla', 'foursquare']):  # and not args.annealing:
             scheduler.step()
 
         if epoch % print_info_ == 0:

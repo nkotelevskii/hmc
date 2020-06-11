@@ -1,9 +1,11 @@
-import torch
 import numpy as np
+import torch
 import torch.nn as nn
-from tqdm import tqdm
 from torch.optim.lr_scheduler import MultiStepLR
+from tqdm import tqdm
+
 from kernels import HMC_vanilla, HMC_our
+
 
 class RNVP(nn.Module):
     def __init__(self, args):
@@ -12,7 +14,7 @@ class RNVP(nn.Module):
         self.hidden_dim = args["hidden_dim"]
         self.z_dim = args["z_dim"]
         mask = np.array([[i % 2 for i in range(args['z_dim'])],
-                              [(i + 1) % 2 for i in range(args['z_dim'])]]).astype(np.float32)
+                         [(i + 1) % 2 for i in range(args['z_dim'])]]).astype(np.float32)
         self.masks = torch.tensor(mask, dtype=args.torchType, device=args.device)
         self.t = torch.nn.ModuleList([args.nett() for _ in range(len(self.masks))])
         self.s = torch.nn.ModuleList([args.nets() for _ in range(len(self.masks))])
@@ -40,6 +42,7 @@ class RNVP(nn.Module):
                 log_det_J += s.sum(dim=1)
         z_new = z_old
         return z_new, log_det_J
+
 
 class Target():
     def __init__(self, cur_dat, energy=False):
@@ -102,7 +105,6 @@ class Target():
         raise NotImplementedError
 
 
-
 def run_rezende(args):
     args.z_dim = 2
     args.data_dim = 2
@@ -116,15 +118,16 @@ def run_rezende(args):
     # for i, samples in enumerate(all_samples):
     #     np.savetxt('../rezende_data/rnvp_{}.txt'.format(i), samples)
 
-    # # hoffman
-    # all_samples = run_rezende_hoffman(args, prior)
-    # for i, samples in enumerate(all_samples):
-    #     np.savetxt('../rezende_data/hoffman_{}.txt'.format(i), samples)
-
-    # methmc
-    all_samples = run_rezende_methmc(args, prior)
+    # hoffman
+    all_samples = run_rezende_hoffman(args, prior)
     for i, samples in enumerate(all_samples):
-        np.savetxt('../rezende_data/methmc_{}.txt'.format(i), samples)
+        np.savetxt('../rezende_data/hoffman_{}.txt'.format(i), samples)
+
+    # # methmc
+    # all_samples = run_rezende_methmc(args, prior)
+    # for i, samples in enumerate(all_samples):
+    #     np.savetxt('../rezende_data/methmc_{}.txt'.format(i), samples)
+
 
 def run_rezende_hoffman(args, prior):
     # hoffman
@@ -167,6 +170,7 @@ def run_rezende_hoffman(args, prior):
 
     return all_samples
 
+
 def run_rezende_rnvp(args, prior):
     # rnvp
     # pdb.set_trace()
@@ -183,14 +187,14 @@ def run_rezende_rnvp(args, prior):
     ################################################################################################
     for cur_dat in ['t1', 't2', 't3', 't4']:
         target = Target(cur_dat).get_logdensity
-
         transitions_rnvp = nn.ModuleList([RNVP(args=args).to(args.device) for _ in range(2)])
         optimizer_rnvp = torch.optim.Adam(params=transitions_rnvp.parameters())
         scheduler = MultiStepLR(optimizer_rnvp, [2000, 5000, 7500, 10000, 15000, 20000], gamma=0.3)
         for current_b in tqdm(range(args.n_batches)):
             optimizer_rnvp.zero_grad()
             u = prior.sample((500, args.z_dim))
-            sum_log_jacobian = torch.zeros(u.shape[0], dtype=args.torchType, device=args.device)  # for log_jacobian accumulation
+            sum_log_jacobian = torch.zeros(u.shape[0], dtype=args.torchType,
+                                           device=args.device)  # for log_jacobian accumulation
             z = u
             for k in range(len(transitions_rnvp)):
                 z_upd, log_jac = transitions_rnvp[k]._forward_step(z)
@@ -212,6 +216,7 @@ def run_rezende_rnvp(args, prior):
                 samples, _ = rnvp._forward_step(samples)
         all_samples.append(samples.cpu().detach().numpy())
     return all_samples
+
 
 def run_rezende_methmc(args, prior):
     all_samples = []
@@ -245,10 +250,10 @@ def run_rezende_methmc(args, prior):
             for i in range(args.K):
                 cond_vector = prior.sample(p_.shape) * scales
                 z, p_, log_jac, current_log_alphas, directions, _ = transitions[i].make_transition(q_old=z,
-                                                                                                        p_old=p_,
-                                                                                                        k=cond_vector,
-                                                                                                        target_distr=target,
-                                                                                                        scales=scales)
+                                                                                                   p_old=p_,
+                                                                                                   k=cond_vector,
+                                                                                                   target_distr=target,
+                                                                                                   scales=scales)
                 sum_log_alpha = sum_log_alpha + current_log_alphas
                 sum_log_jacobian = sum_log_jacobian + log_jac
                 all_directions = torch.cat([all_directions, directions.view(-1, 1)], dim=1)
@@ -258,7 +263,8 @@ def run_rezende_methmc(args, prior):
             # compute objective
             log_r = -args.K * torch_log_2
             log_sigma = torch.log(nn.functional.softplus(sigma_init))
-            log_q = prior.log_prob(u).mean() - log_sigma.mean() + prior.log_prob(p_old / scales).mean() - sum_log_jacobian.mean() + sum_log_alpha.mean()
+            log_q = prior.log_prob(u).mean() - log_sigma.mean() + prior.log_prob(
+                p_old / scales).mean() - sum_log_jacobian.mean() + sum_log_alpha.mean()
             elbo_full = log_likelihood + log_r - log_q
             grad_elbo = elbo_full + elbo_full.detach() * torch.mean(sum_log_alpha)
             (-grad_elbo).backward()
@@ -292,9 +298,9 @@ def run_rezende_methmc(args, prior):
         for i in range(args.K):
             cond_vector = prior.sample(p_.shape) * scales
             samples, p_, _, _, _, _ = transitions[i].make_transition(q_old=samples,
-                                                                       p_old=p_,
-                                                                       k=cond_vector,
-                                                                       target_distr=target,
-                                                                       scales=scales)
+                                                                     p_old=p_,
+                                                                     k=cond_vector,
+                                                                     target_distr=target,
+                                                                     scales=scales)
         all_samples.append(samples.cpu().detach().numpy())
     return all_samples

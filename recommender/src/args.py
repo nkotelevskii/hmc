@@ -1,5 +1,6 @@
 import torch
-from metrics import NDCG_binary_at_k_batch, Recall_at_k_batch
+from metrics import NDCG_binary_at_k_batch
+
 
 def get_args(args):
     class dotdict(dict):
@@ -31,10 +32,9 @@ def get_args(args):
             args.gamma = 0.1  # Stepsize
         else:
             args.gamma = 0.005  # Stepsize
-    args.alpha = 0.9   # For partial momentum refresh
+    args.alpha = 0.9  # For partial momentum refresh
     args.use_barker = True
     args.use_partialref = True
-
 
     if args.annealing:
         if args.data == 'ml20m':
@@ -48,7 +48,7 @@ def get_args(args):
         args.anneal_cap = 1.
 
     ## Metric
-    args.metric = NDCG_binary_at_k_batch #Recall_at_k_batch #
+    args.metric = NDCG_binary_at_k_batch  # Recall_at_k_batch #
 
     if args.model == 'MultiDAE':
         args.l2_coeff = 0.01 / args.train_batch_size

@@ -3,10 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 import torch
-import fileinput
-from tqdm import tqdm
 from scipy import sparse
-from functools import reduce
+
 
 def load_train_data(csv_file, n_items):
     tp = pd.read_csv(csv_file)
@@ -34,6 +32,7 @@ def load_tr_te_data(csv_file_tr, csv_file_te, n_items):
     data_te = sparse.csr_matrix((np.ones_like(rows_te),
                                  (rows_te, cols_te)), dtype='float64', shape=(end_idx - start_idx + 1, n_items))
     return data_tr, data_te
+
 
 class Dataset():
     def __init__(self, args, data_dir=None):

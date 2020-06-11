@@ -2,12 +2,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 from scipy.stats import truncnorm
+
 from kernels import HMC_our, Reverse_kernel
 
 
 def truncated_normal(size, std=1):
     values = truncnorm.rvs(-2. * std, 2. * std, size=size)
     return values
+
 
 def make_linear_network(dims, encoder=False):
     layer_list = nn.ModuleList([])
@@ -24,10 +26,12 @@ def make_linear_network(dims, encoder=False):
     model = nn.Sequential(*layer_list)
     return model
 
+
 class MultiVAE(nn.Module):
     '''
     Model described in the paper Liang, Dawen, et al. "Variational autoencoders for collaborative filtering." Proceedings of the 2018 World Wide Web Conference. 2018.
     '''
+
     def __init__(self, p_dims, q_dims=None, args=None):
         super(MultiVAE, self).__init__()
 
@@ -131,9 +135,11 @@ class Multi_our_VAE(nn.Module):
         self.torch_log_2 = torch.tensor(np.log(2), device=args.device, dtype=args.torchType)
         self.annealing = args.annealing
         self.momentum_scale = nn.Parameter(torch.zeros(args.z_dim, device=args.device, dtype=args.torchType)[None, :],
-                                           requires_grad=args.learnscale)
+                                           requires_grad=args.learnscale)  ## Comment this line for this case validating ml20m models with option annealing = False
 
     def forward(self, x_initial, is_training_ph=1.):
+        # self.momentum_scale = nn.Parameter(torch.zeros(self.q_dims[-1], device=x_initial.device, dtype=torch.float32)[None, :],
+        #                                    requires_grad=False) Uncomment this line for this case validating ml20m models with option annealing = False
         l2 = torch.sum(x_initial ** 2, 1)[..., None]
         x_normed = x_initial / torch.sqrt(torch.max(l2, torch.ones_like(l2) * 1e-12))
         x = self.dropout(x_normed)
@@ -170,7 +176,7 @@ class Multi_our_VAE(nn.Module):
         log_aux = sum_log_alpha - sum_log_jacobian
 
         ## logdensity of prior
-        log_priors = self.std_normal.log_prob(z) + self.std_normal.log_prob(p_/ scales)
+        log_priors = self.std_normal.log_prob(z) + self.std_normal.log_prob(p_ / scales)
 
         ## logits
         logits = self.target.decoder(z)
