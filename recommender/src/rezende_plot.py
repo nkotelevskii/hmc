@@ -113,15 +113,15 @@ def run_rezende(args):
 
     prior = torch.distributions.Normal(loc=torch.tensor(0., dtype=args.torchType, device=args.device),
                                        scale=torch.tensor(1., dtype=args.torchType, device=args.device))
-    # rnvp
-    all_samples = run_rezende_rnvp(args, prior)
-    for i, samples in enumerate(all_samples):
-        np.savetxt('../rezende_data/rnvp_{}.txt'.format(i), samples)
+    # # rnvp
+    # all_samples = run_rezende_rnvp(args, prior)
+    # for i, samples in enumerate(all_samples):
+    #     np.savetxt('../rezende_data/rnvp_{}.txt'.format(i), samples)
 
-    # hoffman
-    all_samples = run_rezende_hoffman(args, prior)
-    for i, samples in enumerate(all_samples):
-        np.savetxt('../rezende_data/hoffman_{}.txt'.format(i), samples)
+    # # hoffman
+    # all_samples = run_rezende_hoffman(args, prior)
+    # for i, samples in enumerate(all_samples):
+    #     np.savetxt('../rezende_data/hoffman_{}.txt'.format(i), samples)
 
     # methmc
     all_samples = run_rezende_methmc(args, prior)
